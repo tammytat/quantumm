@@ -115,12 +115,13 @@ class LessonBlock(models.Model):
         ('jupyter_notebook', 'Jupyter Notebook'),
         ('wokwi', 'Wokwi Robotics Simulator'),
         ('robotics', 'Robotics Simulator'),
-        ('cyber', 'Cyber Terminal'),
+                ('cyber', 'Cyber Lab (Simulated)'),
         ('office_utility_excel', 'Excel Utility'),
         ('office_utility_powerpoint', 'PowerPoint Utility'),
         ('office_utility', 'General Office'),
+        ('powerbi', 'Power BI'),
         ('python_sandbox', 'Python Sandbox'),
-        ('security_terminal', 'Security Terminal'),
+        ('security_terminal', 'Cyber Lab (Simulated)'),
     )
 
     lesson = models.ForeignKey(

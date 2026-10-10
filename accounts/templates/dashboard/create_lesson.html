@@ -285,6 +285,7 @@
   .env-ard    { background: #2d1b00; color: #fbbf24; }
   .env-cyber  { background: #2d0a0a; color: #f87171; }
   .env-office { background: #1e1a2e; color: #c4b5fd; }
+  .env-bi    { background: #3b2600; color: #fcd34d; }
 
   /* ── PREVIEW PANEL ────────────────────────── */
   .qb-preview {
@@ -425,10 +426,13 @@
       ⚡ Arduino / Electronics
     </button>
     <button type="button" class="qb-course-chip" onclick="setCourse(this,'cyber')" data-course="cyber">
-      🔒 Cybersecurity
+      🔒 Cybersecurity (Simulated)
     </button>
-    <button type="button" class="qb-course-chip" onclick="setCourse(this,'office')" data-course="office">
+        <button type="button" class="qb-course-chip" onclick="setCourse(this,'office')" data-course="office">
       📊 Office / Productivity
+    </button>
+    <button type="button" class="qb-course-chip" onclick="setCourse(this,'powerbi')" data-course="powerbi">
+      📈 Power BI / Analytics
     </button>
   </aside>
 
@@ -519,13 +523,16 @@ const CourseIDEs = {
     { key: 'circuit_simulator',      label: 'Circuit Simulator' },
     { key: 'arduino_flasher',        label: 'Arduino Flasher' }
   ],
-  cyber: [
-    { key: 'security_terminal',      label: 'Security Terminal' }
+    cyber: [
+    { key: 'security_terminal',      label: 'Cyber Lab (Simulated)' }
   ],
-  office: [
+    office: [
     { key: 'office_utility_excel',      label: 'Excel Utility' },
     { key: 'office_utility_powerpoint', label: 'PowerPoint Utility' },
     { key: 'office_utility',            label: 'Office Utility (General)' }
+  ],
+  powerbi: [
+    { key: 'powerbi',                   label: 'Power BI Report' }
   ]
 };
 
@@ -534,7 +541,8 @@ const IDEStyles = {
   web:     { pill: 'env-web',   icon: 'bi-code-slash'  },
   arduino: { pill: 'env-ard',   icon: 'bi-cpu'         },
   cyber:   { pill: 'env-cyber', icon: 'bi-shield-lock' },
-  office:  { pill: 'env-office',icon: 'bi-file-earmark-spreadsheet' }
+  office:  { pill: 'env-office',icon: 'bi-file-earmark-spreadsheet' },
+  powerbi: { pill: 'env-bi',    icon: 'bi-bar-chart-line' }
 };
 
 let currentCourse = 'python';
@@ -568,6 +576,7 @@ function normalizeCourseKind(raw) {
   const value = (raw || '').toLowerCase();
   if (value.includes('arduino') || value.includes('circuit') || value.includes('electronic')) return 'arduino';
   if (value.includes('cyber') || value.includes('security')) return 'cyber';
+  if (value.includes('powerbi') || value.includes('power bi') || value.includes('analytics') || value.includes('business intelligence')) return 'powerbi';
   if (value.includes('office') || value.includes('excel') || value.includes('powerpoint')) return 'office';
   if (value.includes('web') || value.includes('html') || value.includes('javascript') || value.includes('react')) return 'web';
   return 'python';
@@ -592,6 +601,7 @@ function buildIDEOptions(course) {
 function getIDEStyle(key) {
   if (['arduino_flasher', 'circuit_simulator'].includes(key)) return IDEStyles.arduino;
   if (key === 'security_terminal') return IDEStyles.cyber;
+  if (key === 'powerbi') return IDEStyles.powerbi;
   if (key && key.startsWith('office_utility')) return IDEStyles.office;
   return IDEStyles.python;
 }

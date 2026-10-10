@@ -12,6 +12,7 @@ import json
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -26,6 +27,7 @@ from .models import (
     TeacherProfile,
 )
 from .views import _award_lesson_xp, _is_csv_load_assignment
+from .environment_manager import EnvironmentManager
 
 # Use a dedicated locmem cache so the real rate limiter never leaks state
 # between tests and never touches the application cache.
@@ -77,6 +79,87 @@ class CsvLoadAssignmentTests(TestCase):
         self.assertFalse(_is_csv_load_assignment("df = something_else('data.csv')"))
         # Syntax errors must not raise.
         self.assertFalse(_is_csv_load_assignment("def broken(:"))
+
+# ---------------------------------------------------------------------------
+# Environment registry (office utilities must not fall back to Python)
+# ---------------------------------------------------------------------------
+
+class OfficeEnvironmentTests(TestCase):
+    OFFICE_KEYS = ["office_utility_excel", "office_utility_powerpoint", "office_utility"]
+
+    def test_office_keys_have_own_runtime(self):
+        for key in self.OFFICE_KEYS:
+            runtime = EnvironmentManager.get_runtime(key)
+            self.assertEqual(runtime.key, key, f"{key} should resolve to itself, not {runtime.key}")
+            self.assertEqual(runtime.protocol, "office")
+            self.assertNotEqual(runtime.protocol, "docker-exec")
+
+    def test_office_keys_do_not_normalize_to_python(self):
+        for key in self.OFFICE_KEYS:
+            self.assertNotEqual(EnvironmentManager.normalize_key(key), "python")
+
+    def test_execute_office_never_runs_python(self):
+        result = EnvironmentManager.execute("office_utility_excel", "=SUM(A1:A2)")
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["logs"]["office_mode"], "excel")
+
+        result = EnvironmentManager.execute("office_utility_powerpoint", "")
+        self.assertEqual(result["logs"]["office_mode"], "powerpoint")
+
+        result = EnvironmentManager.execute("office_utility", "")
+        self.assertEqual(result["logs"]["office_mode"], "general")
+
+    def test_build_environment_exposes_office_mode(self):
+        config = EnvironmentManager.build_environment(None, "office_utility_excel", {})
+        self.assertEqual(config["canonical_key"], "office_utility_excel")
+        self.assertEqual(config["protocol"], "office")
+        self.assertEqual(config["office_mode"], "excel")
+
+class PowerBiEnvironmentTests(TestCase):
+    def test_powerbi_has_own_runtime(self):
+        runtime = EnvironmentManager.get_runtime("powerbi")
+        self.assertEqual(runtime.key, "powerbi")
+        self.assertEqual(runtime.protocol, "powerbi")
+
+    def test_powerbi_does_not_normalize_to_python(self):
+        self.assertEqual(EnvironmentManager.normalize_key("powerbi"), "powerbi")
+        self.assertNotEqual(EnvironmentManager.normalize_key("powerbi"), "python")
+
+    def test_execute_powerbi_returns_report_url(self):
+        result = EnvironmentManager.execute("powerbi", "")
+        self.assertEqual(result["status"], "success")
+        self.assertIn("report_url", result["logs"])
+
+    def test_build_environment_exposes_report_url(self):
+        config = EnvironmentManager.build_environment(None, "powerbi", {})
+        self.assertEqual(config["canonical_key"], "powerbi")
+        self.assertEqual(config["protocol"], "powerbi")
+        self.assertIn("report_url", config)
+
+
+class CyberLabHonestyTests(TestCase):
+    """The cyber environment is a simulation and must say so."""
+
+    def test_cyber_runtime_is_labelled_simulated(self):
+        for key in ("cyber", "security_terminal"):
+            label = EnvironmentManager.get_runtime(key).label
+            self.assertIn("Simulated", label)
+
+    def test_cyber_config_flags_simulation_and_notice(self):
+        config = EnvironmentManager.build_environment(None, "cyber", {})
+        self.assertTrue(config["simulated"])
+        self.assertIn("Simulated", config["notice"])
+
+    def test_cyber_execution_output_is_marked_simulated(self):
+        # Known tool command
+        result = EnvironmentManager.execute("cyber", "nmap -sV 192.168.1.10")
+        self.assertTrue(result["simulated"])
+        self.assertIn("[simulated]", result["output"])
+
+        # Arbitrary command also flagged as simulated
+        result = EnvironmentManager.execute("cyber", "whoami")
+        self.assertTrue(result["simulated"])
+        self.assertIn("[simulated]", result["output"])
 
 
 class AwardXpTests(TestCase):
@@ -233,6 +316,19 @@ class PaymentSuccessTests(TestCase):
         self.assertTrue(Payment.objects.filter(reference="QTH-123", verified=True).exists())
 
     @patch("accounts.views.requests.get")
+    def test_receipt_email_sent_once_on_verified_payment(self, mock_get):
+        mock_get.return_value.json.return_value = self._verify_response()
+        mock_get.return_value.status_code = 200
+        self.client.get(self.url, {"reference": "QTH-REC1"})
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("receipt", mail.outbox[0].subject.lower())
+        self.assertEqual(mail.outbox[0].to, ["buyer@example.com"])
+
+        # Re-visiting the same reference must NOT send a duplicate receipt.
+        self.client.get(self.url, {"reference": "QTH-REC1"})
+        self.assertEqual(len(mail.outbox), 1)
+
+    @patch("accounts.views.requests.get")
     def test_wrong_amount_does_not_enroll(self, mock_get):
         mock_get.return_value.json.return_value = self._verify_response(amount=5)
         mock_get.return_value.status_code = 200
@@ -277,3 +373,54 @@ class SignupLoginTests(TestCase):
             {"username": "dup", "email": "other@example.com", "password": "pw", "password_confirm": "pw"},
         )
         self.assertEqual(User.objects.filter(username="dup").count(), 1)
+# ---------------------------------------------------------------------------
+# Password reset flow
+# ---------------------------------------------------------------------------
+
+class PasswordResetTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="resetme", password="OldPass123!", email="resetme@example.com"
+        )
+
+    def test_reset_form_renders(self):
+        response = self.client.get(reverse("password_reset"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_reset_sends_email_for_known_address(self):
+        response = self.client.post(reverse("password_reset"), {"email": "resetme@example.com"})
+        self.assertRedirects(response, reverse("password_reset_done"))
+        # One email should have been queued via the (console/locmem) backend.
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Password Reset", mail.outbox[0].subject)
+        self.assertIn("reset", mail.outbox[0].body.lower())
+
+    def test_reset_does_not_leak_for_unknown_address(self):
+        response = self.client.post(reverse("password_reset"), {"email": "nobody@example.com"})
+        # Same redirect regardless (no account enumeration), and no email sent.
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_full_reset_flow_changes_password(self):
+        self.client.post(reverse("password_reset"), {"email": "resetme@example.com"})
+        body = mail.outbox[0].body
+        # Extract the reset link from the email body.
+        link = [line.strip() for line in body.splitlines() if "/reset/" in line][0]
+
+        # The confirm view redirects to a token-carrying URL, then fills the form.
+        confirm_url = link.replace("http://testserver", "")
+        response = self.client.get(confirm_url, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        new_password = "BrandNewPass456!"
+        post_url = response.redirect_chain[-1][0] if response.redirect_chain else confirm_url
+        response = self.client.post(
+            post_url,
+            {"new_password1": new_password, "new_password2": new_password},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Old password no longer works, new one does.
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(new_password))

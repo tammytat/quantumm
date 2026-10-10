@@ -115,10 +115,16 @@
                         {% endif %}
                     </div>
 
-                    <!-- Authorization Trigger -->
+                                        <!-- Authorization Trigger -->
                     <button type="submit" class="btn btn-primary btn-login btn-lg w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center">
                         Authenticate & Enter <i class="bi bi-arrow-right-short ms-1 fs-4"></i>
                     </button>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'password_reset' %}" class="text-secondary small text-decoration-none">
+                            Forgot your password?
+                        </a>
+                    </div>
                 </form>
 
                 <!-- --- INDEX REGISTER INTERFACE REDIRECT --- -->

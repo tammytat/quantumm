@@ -73,10 +73,11 @@ def env_gateway(request, env_key):
         'arduino_flasher': 'environments/arduino.html',
         'circuit': 'environments/circuit.html',
         'circuit_simulator': 'environments/circuit.html',
-        'jupyter_notebook': 'environments/jupyter.html',
+                'jupyter_notebook': 'environments/jupyter.html',
         'office_utility_excel': 'environments/excel.html',
         'office_utility_powerpoint': 'environments/ppt.html',
         'office_utility': 'environments/office.html',
+        'powerbi': 'environments/powerbi.html',
         'python_sandbox': 'environments/py_sandbox.html',
         'security_terminal': 'environments/security.html',
     }
@@ -332,8 +333,11 @@ def generic_validate_code(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid method.'}, status=405)
 
 # --- NAVIGATION VIEWS ---
-def about(request): return render(request, 'about.html')
-def services(request): return render(request, 'services.html')
+def about(request):
+    return render(request, 'about.html')
+
+def services(request):
+    return render(request, 'services.html')
 
 def contact(request):
     if request.method == 'POST':
@@ -355,13 +359,10 @@ def contact(request):
             )
             messages.success(request, f"Thank you, {name}! Your communication message was routed successfully.")
         except Exception as e:
-            # Log the failure and report it to the user instead of silently
-            # claiming success while the email was never delivered.
             print(f"Email Dispatch Error: {str(e)}")
             messages.error(request, "We could not send your message right now. Please try again later.")
         return redirect('contact')
     return render(request, 'contact.html')
-
 # --- HOMEPAGE & AUTHENTICATION ---
 def index(request):
     if request.user.is_authenticated:
@@ -427,10 +428,13 @@ def our_courses_view(request):
     profile = None
     if request.user.is_authenticated:
         my_courses = Course.objects.filter(students=request.user)
-        try: profile = Profile.objects.get(user=request.user)
-        except Profile.DoesNotExist: pass
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            pass
     context = {'courses': all_courses, 'my_courses': my_courses, 'profile': profile}
     return render(request, 'our_courses.html', context)
+
 
 @login_required
 def profile_view(request):
@@ -660,6 +664,32 @@ def checkout(request, slug):
 
     return render(request, 'payment/checkout.html', context)
 
+def _send_payment_receipt(user, course, payment):
+    """Email a receipt for a verified enrollment.
+
+    Kept as a standalone helper so it can be tested in isolation and so a
+    mail failure can never break the enrollment/redirect flow.
+    """
+    amount_ngn = payment.amount_kobo / 100.0
+    subject = f"Your Quantum TechHub receipt — {course.title}"
+    body = (
+        f"Hi {user.get_username()},\n\n"
+        f"Thanks for enrolling in \"{course.title}\". This is your payment receipt.\n\n"
+        f"Reference: {payment.reference}\n"
+        f"Course:    {course.title}\n"
+        f"Amount:    NGN {amount_ngn:,.2f}\n\n"
+        f"You now have full access to the course materials. Happy learning!\n\n"
+        f"— The Quantum TechHub Team"
+    )
+    send_mail(
+        subject=subject,
+        message=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
 @login_required
 def payment_success(request, slug):
     reference = request.GET.get('reference') or request.GET.get('ref')
@@ -683,7 +713,7 @@ def payment_success(request, slug):
                 ):
 
             # Record the verified transaction once (idempotency + audit trail).
-            Payment.objects.get_or_create(
+            payment, created = Payment.objects.get_or_create(
                 reference=reference,
                 defaults={
                     'user': request.user,
@@ -693,6 +723,17 @@ def payment_success(request, slug):
                 },
             )
             course.students.add(request.user)
+
+            # Send the receipt exactly once — only on the first verification of
+            # this reference, so a learner refreshing the page doesn't get
+            # duplicate emails. Email failures must never block enrollment, so
+            # this is wrapped defensively.
+            if created:
+                try:
+                    _send_payment_receipt(request.user, course, payment)
+                except Exception as exc:
+                    print(f"Receipt email dispatch error: {exc}")
+
             messages.success(request, f"Welcome to {course.title}! Your dynamic payment split completed successfully.")
             return render(request, 'payment/success.html', {'course': course})
         else: messages.error(request, "Payment verification did not match this course or account.")

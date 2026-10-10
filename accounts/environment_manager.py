@@ -129,6 +129,9 @@ class EnvironmentManager:
     ]
     MAX_STAGED_FILE_SIZE = 10 * 1024 * 1024  # 10 MB per file
     MAX_TOTAL_STAGED_SIZE = 50 * 1024 * 1024  # 50 MB total staged files
+    # Public Microsoft "Sales & Marketing" sample report used as a fallback so
+    # the Power BI environment renders something meaningful out of the box.
+    DEFAULT_POWERBI_REPORT_URL = "https://playground.powerbi.com/sampleReportEmbed"
 
     REGISTRY = {
         "python": EnvironmentRuntime("python", "docker-exec", "Python Sandbox", "environments/base_ide.html"),
@@ -141,8 +144,14 @@ class EnvironmentManager:
         "circuit": EnvironmentRuntime("circuit", "iframe", "Wokwi Circuit Simulator", "environments/base_ide.html"),
         "circuit_simulator": EnvironmentRuntime("circuit_simulator", "iframe", "Wokwi Circuit Simulator", "environments/base_ide.html"),
         "arduino_flasher": EnvironmentRuntime("arduino_flasher", "web-serial", "Arduino Hardware Bridge", "environments/base_ide.html"),
-        "cyber": EnvironmentRuntime("cyber", "terminal", "Cyber Terminal", "environments/base_ide.html"),
-        "security_terminal": EnvironmentRuntime("security_terminal", "terminal", "Cyber Terminal", "environments/base_ide.html"),
+        "cyber": EnvironmentRuntime("cyber", "terminal", "Cyber Security Lab (Simulated)", "environments/base_ide.html"),
+        "security_terminal": EnvironmentRuntime("security_terminal", "terminal", "Cyber Security Lab (Simulated)", "environments/base_ide.html"),
+        # --- Office utilities (browser-side tooling: SheetJS / reveal.js / Office viewer) ---
+        "office_utility_excel": EnvironmentRuntime("office_utility_excel", "office", "Excel Analyzer", "environments/excel.html"),
+        "office_utility_powerpoint": EnvironmentRuntime("office_utility_powerpoint", "office", "PowerPoint Preview", "environments/ppt.html"),
+        "office_utility": EnvironmentRuntime("office_utility", "office", "Universal Office Suite", "environments/office.html"),
+        # --- Power BI (embedded report iframe) ---
+        "powerbi": EnvironmentRuntime("powerbi", "powerbi", "Power BI Report", "environments/powerbi.html"),
     }
 
     @classmethod
@@ -156,6 +165,12 @@ class EnvironmentManager:
             "advanced_python_engine": "python",
             "jupyter_notebook": "jupyter",
             "security_terminal": "cyber",
+            # Office utilities keep their own canonical key so they never
+            # silently degrade into the Python sandbox.
+            "office_utility_excel": "office_utility_excel",
+            "office_utility_powerpoint": "office_utility_powerpoint",
+            "office_utility": "office_utility",
+            "powerbi": "powerbi",
         }
         return aliases.get(env_key, env_key or "python")
 
@@ -189,12 +204,32 @@ class EnvironmentManager:
             config["lab_config"] = cls.build_jupyter_config(metadata.get("files"))
         elif canonical_key == "cyber":
             config["websocket_url"] = metadata.get("websocket_url") or "/ws/environments/cyber/"
+            # This environment is an in-browser SIMULATION. The commands run no
+            # real security tooling and never touch a network; it exists to teach
+            # command syntax and workflow. `simulated` is surfaced to the UI so
+            # students are never misled into thinking it is a live lab.
+            config["simulated"] = True
+            config["notice"] = (
+                "Simulated security lab: commands are illustrative and run no real "
+                "scanning or exploitation tooling."
+            )
             config["tools"] = [
                 {"name": "Nmap", "command": "nmap -sV 192.168.1.10"},
                 {"name": "Wireshark", "command": "tshark -i eth0 -c 5"},
                 {"name": "Metasploit", "command": "msfconsole -q"},
                 {"name": "Burp Suite", "command": "burpsuite --project-file lab.burp"},
             ]
+        elif canonical_key in ("office_utility_excel", "office_utility_powerpoint", "office_utility"):
+            # Office utilities render entirely in the browser (SheetJS / reveal.js
+            # / the hosted Office viewer). The server only supplies the mode and
+            # an optional document URL.
+            config["office_mode"] = canonical_key.replace("office_utility", "").strip("_") or "general"
+            config["document_url"] = metadata.get("document_url", "")
+        elif canonical_key == "powerbi":
+            # Power BI reports render in an embedded iframe. Provide a default
+            # public sample report; instructors can override per lesson.
+            config["report_url"] = metadata.get("report_url") or cls.DEFAULT_POWERBI_REPORT_URL
+            config["allow"] = "fullscreen"
 
         return config
 
@@ -258,6 +293,10 @@ class EnvironmentManager:
             }
         if canonical_key == "cyber":
             return cls.execute_cyber(payload)
+        if canonical_key in ("office_utility_excel", "office_utility_powerpoint", "office_utility"):
+            return cls.execute_office(canonical_key, payload, metadata)
+        if canonical_key == "powerbi":
+            return cls.execute_powerbi(payload, metadata)
         return {"status": "error", "output": f"Unknown environment: {env_key}", "logs": ""}
 
     @classmethod
@@ -398,6 +437,14 @@ class EnvironmentManager:
 
     @classmethod
     def execute_cyber(cls, command):
+        """Return a SIMULATED response for the security lab terminal.
+
+        This is intentionally a teaching aid, NOT a real terminal. No command is
+        executed, no tooling is installed, and no network is touched. Outputs are
+        canned strings so learners can practise command syntax and workflow. The
+        ``[simulated]`` prefix is included in every response so the UI can make
+        clear that nothing real happened.
+        """
         clean_command = (command or "").strip()
         if not clean_command:
             return {"status": "error", "output": "No terminal command received.", "logs": ""}
@@ -409,5 +456,58 @@ class EnvironmentManager:
         }
         for prefix, output in sample_outputs.items():
             if clean_command.startswith(prefix):
-                return {"status": "success", "output": output, "logs": f"Simulated cyber tool: {prefix}"}
-        return {"status": "success", "output": f"$ {clean_command}\nCommand accepted by the lab gateway.", "logs": "AJAX terminal fallback."}
+                return {
+                    "status": "success",
+                    "simulated": True,
+                    "output": f"[simulated] {output}\n(No real tooling was run.)",
+                    "logs": f"Simulated cyber tool: {prefix}",
+                }
+        return {
+            "status": "success",
+            "simulated": True,
+            "output": f"$ {clean_command}\n[simulated] Command accepted by the lab gateway. No real command was executed.",
+            "logs": "Simulated cyber terminal fallback.",
+        }
+
+    @classmethod
+    def execute_office(cls, canonical_key, payload="", metadata=None):
+        """Office utilities execute in the browser, not in the Python sandbox.
+
+        Excel/SheetJS, PowerPoint/reveal.js and the hosted Office viewer all run
+        client-side, so the server simply acknowledges the payload and reports
+        which mode the front-end should render. This deliberately does NOT route
+        to ``execute_python`` — that was the old bug where Excel lessons silently
+        became Python lessons.
+        """
+        mode = canonical_key.replace("office_utility", "").strip("_") or "general"
+        labels = {
+            "excel": "Excel analyzer",
+            "powerpoint": "PowerPoint preview",
+            "general": "Office suite",
+        }
+        return {
+            "status": "success",
+            "output": f"{labels.get(mode, 'Office utility')} ready. Rendering in the browser.",
+            "logs": {
+                "office_mode": mode,
+                "document_url": (metadata or {}).get("document_url", ""),
+                "payload_length": len(payload or ""),
+            },
+        }
+
+    @classmethod
+    def execute_powerbi(cls, payload="", metadata=None):
+        """Power BI reports render in an embedded iframe (no server execution).
+
+        The server just confirms the report target so the front-end can mount
+        the embed. This keeps Power BI lessons off the Python sandbox path.
+        """
+        report_url = (metadata or {}).get("report_url") or cls.DEFAULT_POWERBI_REPORT_URL
+        return {
+            "status": "success",
+            "output": "Power BI report ready. Rendering embedded report in the browser.",
+            "logs": {
+                "report_url": report_url,
+                "payload_length": len(payload or ""),
+            },
+        }

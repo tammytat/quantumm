@@ -1,4 +1,10 @@
+{% load static %}
 <div class="qt-cyber-dashboard">
+    <div class="qt-cyber-banner" role="note"
+         style="background:#3b2600;color:#fcd34d;border:1px solid #92400e;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px">
+        ⚠️ <strong>Simulated lab.</strong> These tools are illustrative only — no real scanning,
+        packet capture, or exploitation happens. Use it to practise command syntax.
+    </div>
     <aside class="qt-cyber-tools">
         <button type="button" data-cyber-command="nmap -sV 192.168.1.10">Nmap</button>
         <button type="button" data-cyber-command="tshark -i eth0 -c 5">Wireshark</button>
