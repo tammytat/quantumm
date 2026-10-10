@@ -1,0 +1,38 @@
+{% extends 'environments/base_env.html' %}
+
+{% block extra_head %}
+<style>
+    .sim-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; min-height: 100vh; }
+    .sim-frame { width: 100%; height: 100vh; border: 0; background: #020617; }
+    .sim-panel { background: #0f172a; border-left: 1px solid #273449; padding: 16px; }
+    .sim-status { border: 1px solid #273449; border-radius: 8px; padding: 10px; background: rgba(15, 23, 42, 0.8); color: #cbd5e1; }
+    @media (max-width: 860px) { .sim-grid { grid-template-columns: 1fr; } .sim-frame { height: 420px; } .sim-panel { border-left: 0; border-top: 1px solid #273449; } }
+</style>
+{% endblock %}
+
+{% block env_content %}
+<div class="sim-grid">
+    <iframe
+        title="Circuit simulation sandbox"
+        class="sim-frame"
+        data-circuit-frame
+        src="https://wokwi.com/projects/new/arduino-uno?embed=1">
+    </iframe>
+
+    <aside class="sim-panel">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold mb-0">Circuit Lab</h5>
+            <span class="badge text-bg-success">Wokwi</span>
+        </div>
+        <p class="small text-secondary">Run sends the current lesson code to the embedded simulator bridge and then validates it through the platform API.</p>
+        <div class="d-grid gap-2 mb-3">
+            <button type="button" class="btn btn-success" data-env-run>Run Simulation</button>
+            <button type="button" class="btn btn-outline-info" data-flash-hardware>Flash to Hardware</button>
+        </div>
+        <div class="sim-status small mb-3">
+            Web Serial flashing works in Chrome and Edge over HTTPS or localhost with a connected Arduino-compatible board.
+        </div>
+        <div class="env-terminal" data-env-terminal></div>
+    </aside>
+</div>
+{% endblock %}

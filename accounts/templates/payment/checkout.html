@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 p-4" style="border-radius: 20px;">
+                <div class="text-center mb-4">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded-circle d-inline-block mb-3">
+                        <i class="bi bi-shield-lock text-primary fs-2"></i>
+                    </div>
+                    <h2 class="fw-bold">Secure Checkout</h2>
+                    <p class="text-muted">Quantum Tech Hub Payment Portal</p>
+                </div>
+
+                <div class="bg-light p-3 rounded mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Course Title</span>
+                        <span class="fw-bold">{{ course.title }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Total to Pay</span>
+                        <span class="fw-bold text-primary fs-4">₦{{ course.price }}</span>
+                    </div>
+                </div>
+
+                <!-- Pay Button with Loading Spinner logic -->
+                <button type="button" id="payButton" class="btn btn-primary btn-lg w-100 fw-bold py-3 shadow-sm" onclick="payWithPaystack()">
+                    <span id="buttonText">Pay Now with Paystack</span>
+                    <span id="buttonSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+                
+                <p class="text-center text-muted x-small mt-3">
+                    <i class="bi bi-lock-fill me-1"></i> Your payment is encrypted and secure.
+                </p>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'index' %}" class="text-decoration-none text-secondary small">
+                    <i class="bi bi-arrow-left me-1"></i> Cancel and return to dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paystack Script -->
+<script src="https://js.paystack.co/v1/inline.js" referrerpolicy="no-referrer-when-downgrade"></script>
+
+<script>
+  function payWithPaystack() {
+    const btn = document.getElementById('payButton');
+    const btnText = document.getElementById('buttonText');
+    const btnSpinner = document.getElementById('buttonSpinner');
+
+    // 1. Connection/Library Check
+    if (typeof PaystackPop === 'undefined') {
+        alert("The payment security script failed to load. Please check your internet connection and refresh the page (Ctrl + F5).");
+        return;
+    }
+
+    // 2. Visual Loading State
+    btn.disabled = true;
+    btnText.innerText = "Connecting...";
+    btnSpinner.classList.remove('d-none');
+
+    // 3. Setup Paystack
+    let handler = PaystackPop.setup({
+      key: '{{ paystack_public_key }}', 
+      email: '{{ email }}',
+      amount: {{ amount_kobo }}, // Amount in kobo (smallest unit)
+      currency: 'NGN',
+      ref: 'QTH-' + Math.floor((Math.random() * 1000000000) + 1),
+      metadata: {
+         custom_fields: [
+            {
+                display_name: "Course Title",
+                variable_name: "course_title",
+                value: "{{ course.title }}"
+            }
+         ]
+      },
+      callback: function(response) {
+        // Redirect to success view
+        window.location.href = "{% url 'payment_success' course.slug %}?ref=" + response.reference;
+      },
+      onClose: function() {
+        // Reset button state if user cancels
+        btn.disabled = false;
+        btnText.innerText = "Pay Now with Paystack";
+        btnSpinner.classList.add('d-none');
+        alert('Transaction cancelled.');
+      }
+    });
+
+    handler.openIframe();
+  }
+</script>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    .bg-opacity-10 { --bs-bg-opacity: 0.1; }
+</style>
+{% endblock %}

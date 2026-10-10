@@ -1,0 +1,68 @@
+/* 1. The Main Grid Container */
+.construction-kit-container {
+    display: grid;
+    grid-template-columns: 250px 1fr 300px;
+    gap: 20px;
+    padding: 20px;
+    min-height: 80vh;
+    background: #f1f5f9;
+}
+
+/* 2. Sidebar (The Palette) */
+.sidebar {
+    background: #0f172a;
+    padding: 20px;
+    border-radius: 12px;
+    color: white;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.sidebar h3 {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+}
+
+/* 3. The Builder Stage (The Forms) */
+.builder-stage {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+/* 4. Live Preview (Fixed Sidebar feel) */
+.live-preview {
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    border-radius: 12px;
+    background: #ffffff;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.live-preview h4 {
+    margin-top: 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* 5. Override Admin clutter inside the builder stage */
+.builder-stage .inline-related {
+    margin-top: 0 !important;
+}
+
+.builder-stage .add-row {
+    background: #0f172a !important;
+    border-radius: 8px !important;
+    text-align: center;
+}

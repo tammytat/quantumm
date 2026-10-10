@@ -1,0 +1,10 @@
+{% extends 'environments/base_env.html' %}
+{% block extra_head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+{% endblock %}
+{% block env_content %}
+    <h4>Office Utility: Excel Analyzer</h4>
+    <input type="file" id="upload" class="form-control mb-2">
+    <div id="grid" style="height: 300px; background: white; color: black;"></div>
+    <button class="btn btn-success" onclick="validateSheet()">Validate Formulas</button>
+{% endblock %}

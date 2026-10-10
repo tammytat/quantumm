@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quantum TechHub Environment Gateway</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.5.0/css/xterm.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.5.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.10.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.50.0/min/vs/loader.min.js"></script>
+    <script src="{% static 'js/ide_gateway.js' %}?v=3"></script>
+    <style>
+        :root {
+            --qt-bg: #0a0e14;
+            --qt-panel: #0f1620;
+            --qt-line: #1f2a37;
+            --qt-green: #00ff41;
+            --qt-text: #d7e2ee;
+            --qt-muted: #718096;
+            --qt-editor-height: 220px;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--qt-bg); color: var(--qt-text); font-family: "Roboto Mono", ui-monospace, monospace; }
+        .qt-ide { height: calc(var(--qt-editor-height) + 260px); min-height: 480px; display: grid; grid-template-rows: 48px minmax(0, 1fr) 170px; background: var(--qt-bg); overflow: hidden; }
+        .qt-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--qt-line); background: #080c12; }
+        .qt-brand { display: flex; align-items: center; gap: 10px; color: var(--qt-green); font-weight: 700; letter-spacing: .02em; }
+        .qt-status { display: flex; align-items: center; gap: 10px; color: var(--qt-muted); font-size: 12px; }
+        .qt-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--qt-green); box-shadow: 0 0 12px rgba(0, 255, 65, .8); }
+        .qt-btn { border: 1px solid var(--qt-line); background: #111827; color: var(--qt-text); border-radius: 6px; padding: 7px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+        .qt-btn:hover { border-color: var(--qt-green); color: var(--qt-green); }
+        .qt-run { background: var(--qt-green); color: #041007; border-color: var(--qt-green); font-weight: 700; }
+        .qt-main { min-height: 0; display: grid; grid-template-columns: 40% 60%; }
+        .qt-ide.focus-mode .qt-main { grid-template-columns: 0 1fr; }
+        .qt-sidebar { min-width: 0; overflow: auto; border-right: 1px solid var(--qt-line); background: var(--qt-panel); padding: 18px; }
+        .qt-ide.focus-mode .qt-sidebar { display: none; }
+        .qt-theory { white-space: pre-wrap; line-height: 1.7; color: #cbd5e1; }
+        .qt-sandbox { min-width: 0; min-height: 0; position: relative; display: grid; grid-template-rows: 42px minmax(0, 1fr); background: #050816; }
+        .qt-envbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px; border-bottom: 1px solid var(--qt-line); }
+        .qt-select { background: #0a0e14; color: var(--qt-text); border: 1px solid var(--qt-line); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 12px; }
+        .qt-pane { min-height: 0; position: relative; overflow: auto; }
+        .qt-python-editor { width: 100%; min-height: 220px; height: 220px; max-height: 620px; border-bottom: 1px solid var(--qt-line); }
+        .qt-python-editor textarea { resize: none; }
+        .qt-pane iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+        .qt-loading { position: absolute; inset: 0; display: none; place-items: center; background: rgba(10, 14, 20, .88); z-index: 5; color: var(--qt-green); }
+        .qt-loading.active { display: grid; }
+        .qt-terminal-drawer { min-height: 0; border-top: 1px solid var(--qt-line); background: #020617; display: grid; grid-template-rows: 34px minmax(0, 1fr); }
+        .qt-terminal-head { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: var(--qt-muted); font-size: 12px; border-bottom: 1px solid var(--qt-line); }
+        #qt-terminal { min-height: 0; padding: 6px; }
+        .qt-save-state { position: fixed; right: 14px; bottom: 14px; color: var(--qt-green); background: #06110a; border: 1px solid rgba(0,255,65,.35); border-radius: 999px; padding: 7px 11px; font-size: 11px; z-index: 10; }
+        @media (max-width: 900px) { .qt-main { grid-template-columns: 1fr; } .qt-sidebar { display: none; } }
+    </style>
+</head>
+<body>
+    {{ environment_config|json_script:"environment-config" }}
+    <div class="qt-ide" id="qt-ide">
+        <header class="qt-topbar">
+            <div class="qt-brand"><span class="qt-dot"></span> Quantum TechHub Gateway</div>
+            <div class="qt-status">
+                <span>Lab Connection: Active</span>
+                <span>Target IP: 192.168.1.10</span>
+                <button class="qt-btn" type="button" data-focus-toggle>Focus Mode</button>
+                <button class="qt-btn" type="button" data-fullscreen-toggle>Fullscreen</button>
+                <button class="qt-btn qt-run" type="button" data-run>Run / Simulate</button>
+            </div>
+        </header>
+
+        <section class="qt-main">
+            <aside class="qt-sidebar">
+                <h3>Lesson Theory</h3>
+                <div class="qt-theory">
+                    {% if block and block.hint %}{{ block.hint }}{% elif block and block.content %}{{ block.content }}{% else %}Select an environment and run your lab code from the sandbox pane.{% endif %}
+                </div>
+            </aside>
+
+            <main class="qt-sandbox">
+                <div class="qt-envbar">
+                    <select class="qt-select" data-env-select>
+                        <option value="python">Python</option>
+                        <option value="jupyter">JupyterLite</option>
+                        <option value="wokwi">Wokwi Circuit</option>
+                        <option value="cyber">Cyber Terminal</option>
+                    </select>
+                    <span data-env-label>{{ runtime.label|default:"Environment" }}</span>
+                </div>
+                <div class="qt-pane" data-ide-pane>
+                    <div class="qt-loading active" data-loading>Loading environment...</div>
+                </div>
+            </main>
+        </section>
+
+        <section class="qt-terminal-drawer">
+            <div class="qt-terminal-head">
+                <span>Terminal / Console</span>
+                <button class="qt-btn" type="button" data-clear-terminal>Reset Lab</button>
+            </div>
+            <div id="qt-terminal"></div>
+        </section>
+    </div>
+    <div class="qt-save-state" data-save-state>All changes saved</div>
+</body>
+</html>

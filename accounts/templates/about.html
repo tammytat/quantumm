@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us | Quantum TechHub{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="font-family: 'Times New Roman', Times, serif; max-width: 850px;">
+    
+    <h1 class="fw-bold mb-4" style="color: #0f172a; font-size: 2.3rem; letter-spacing: -0.5px;">
+        Empowering the Next Generation of African Technical Innovators
+    </h1>
+    
+    <p class="fs-5 mb-3" style="line-height: 1.6; color: #1e293b; text-align: justify; font-weight: 500;">
+        With 20 years of experience in Nigerian classrooms, we are bridge-builders between traditional education and the digital future.
+    </p>
+    
+    <p class="mb-3" style="font-size: 1.2rem; line-height: 1.6; color: #334155; text-align: justify;">
+        Welcome to Quantum TechHub, a premier practical incubation workspace designed to bridge the gap between abstract academic theory and modern industrial application. We specialize in transforming curious minds into competent structural thinkers through project-based, hands-on learning.
+    </p>
+    
+    <p class="mb-5" style="font-size: 1.2rem; line-height: 1.6; color: #334155; text-align: justify;">
+        At Quantum TechHub, we believe that the best way to master technology is to build it. Our curriculum bypasses dense, unengaging reading and puts students directly in the driver’s seat. From writing clean Python pipeline automations and training custom data models to wiring up smart, touchless microcontrollers and robotics arrays using C++, our students don't just consume technology—they engineer it. We provide the physical component toolkits, virtual sandbox environments, and rigorous mentorship necessary to foster generational digital literacy.
+    </p>
+    
+    <div class="mt-4">
+        <a href="{% url 'index' %}" class="btn btn-outline-primary fw-bold px-4" style="border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;">
+            <i class="bi bi-arrow-left me-2"></i> Back to Home
+        </a>
+    </div>
+
+</div>
+{% endblock %}

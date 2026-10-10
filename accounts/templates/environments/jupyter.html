@@ -1,0 +1,42 @@
+{% extends 'environments/base_env.html' %}
+
+{% block extra_head %}
+<style>
+    .jupyter-grid { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    .dataset-panel { background: #0f172a; border-right: 1px solid #273449; padding: 14px; }
+    .dataset-drop { border: 1px dashed #38bdf8; border-radius: 8px; padding: 14px; color: #bae6fd; background: rgba(14, 165, 233, 0.08); }
+    .dataset-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #273449; border-radius: 8px; padding: 8px; margin-top: 8px; color: #e2e8f0; font-size: 12px; }
+    .dataset-row button { border: 0; background: transparent; color: #fca5a5; font-size: 18px; line-height: 1; }
+    .notebook-frame { width: 100%; height: calc(100vh - 118px); border: 0; background: #fff; }
+    @media (max-width: 760px) { .jupyter-grid { grid-template-columns: 1fr; } .dataset-panel { border-right: 0; border-bottom: 1px solid #273449; } }
+</style>
+{% endblock %}
+
+{% block env_content %}
+<div class="jupyter-grid">
+    <aside class="dataset-panel">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold mb-0">Datasets</h6>
+            <span class="badge text-bg-info">Pyodide</span>
+        </div>
+        <label class="dataset-drop d-block mb-3">
+            <span class="d-block fw-bold mb-1">Upload CSV files</span>
+            <span class="d-block small text-info-emphasis mb-2">Files are stored locally for pandas reads inside the browser.</span>
+            <input type="file" accept=".csv,text/csv" multiple class="form-control form-control-sm" data-dataset-input>
+        </label>
+        <div data-dataset-list></div>
+    </aside>
+
+    <main class="p-3">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold mb-0">JupyterLite Lab</h5>
+                <p class="small text-secondary mb-0">Python, pandas, numpy, and plots run in-browser through the bundled JupyterLite workspace.</p>
+            </div>
+            <button type="button" class="btn btn-info btn-sm" onclick="window.environmentBridge.postToJupyter({ type: 'quantumm:focus-notebook' })">Focus Notebook</button>
+        </div>
+        <iframe title="JupyterLite notebook workspace" class="notebook-frame" data-jupyterlite-frame></iframe>
+        <div class="env-terminal mt-3" data-env-terminal></div>
+    </main>
+</div>
+{% endblock %}

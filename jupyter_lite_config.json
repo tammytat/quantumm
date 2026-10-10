@@ -1,0 +1,28 @@
+{
+  "LiteBuildConfig": {
+    "output_dir": "_output",
+    "ignore_files": [
+      ".ipynb_checkpoints"
+    ]
+  },
+  "JupyterLiteApp": {
+    "contents": ["./my_course_notebooks"],
+    "federated_extensions": [
+      "@jupyterlite/pyolite-kernel"
+    ]
+  },
+  "PyoliteKernelApp": {
+    "settings": {
+      "theme": "JupyterLab Dark"
+    },
+    "packages": [
+      "numpy",
+      "pandas",
+      "scipy",
+      "scikit-learn",
+      "matplotlib",
+      "seaborn",
+      "statsmodels"
+    ]
+  }
+}

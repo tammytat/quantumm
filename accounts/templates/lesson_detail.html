@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.5.0/css/xterm.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.5.0/lib/xterm.min.js"></script>
+<script src="{% static 'js/environment_bridge.js' %}"></script>
+
+<style>
+    .CodeMirror { height: 320px; border-radius: 8px; font-size: 15px; margin-top: 10px; border: 1px solid #334155; }
+    .syllabus-link { transition: all 0.2s ease-in-out; }
+    .syllabus-link:hover { background-color: rgba(25, 135, 84, 0.1) !important; color: #198754 !important; }
+    .sandbox-container { margin-bottom: 20px; border: 1px solid #dee2e6; border-radius: 10px; overflow: hidden; }
+    .lesson-text-block { white-space: pre-wrap; line-height: 1.7; }
+    .lesson-code-block { background: #0f172a; color: #7dd3fc; border-radius: 10px; padding: 1rem; white-space: pre-wrap; overflow-x: auto; }
+    .lab-terminal { min-height: 150px; background: #050816; color: #d1fae5; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; overflow: auto; }
+    .lab-terminal .xterm { padding: 6px; }
+</style>
+
+<div class="container-fluid py-4 px-4" style="min-height: 100vh;">
+    <div class="row g-4">
+        <div class="col-xl-3 col-lg-4">
+            <div class="card h-100 shadow border rounded-4 font-monospace d-flex flex-column" style="min-height: 600px;">
+                <div class="p-3 border-bottom rounded-top-4">
+                    <span class="text-muted x-small text-uppercase d-block mb-1">Module Navigator</span>
+                    <h6 class="fw-bold text-success mb-0 text-truncate">{{ course.title }}</h6>
+                </div>
+                <div class="p-3 flex-grow-1 overflow-y-auto" style="max-height: 420px;">
+                    <div class="d-flex flex-column gap-2">
+                        {% for l in lessons %}
+                            <a href="{% url 'lesson_detail' course.slug l.id %}" class="p-2 border rounded-3 d-flex align-items-center justify-content-between text-decoration-none syllabus-link {% if l.id == lesson.id %}bg-success bg-opacity-10 border-success text-success fw-bold shadow-sm{% else %}text-dark{% endif %}">
+                                <span class="small text-truncate">{{ forloop.counter }}. {{ l.title }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-9 col-lg-8">
+            <div class="card p-4 shadow border rounded-4" style="min-height: 600px;">
+                <h1 class="fw-bold mb-4"><i class="bi bi-terminal-fill text-success"></i> {{ lesson.title }}</h1>
+
+                <div class="workspace-engine-container">
+                    {% for block in lesson.blocks.all %}
+                        {% if block.block_type == 'text' %}
+                            <div class="lesson-text-block mb-4">{{ block.content }}</div>
+                        {% elif block.block_type == 'code' %}
+                            <pre class="lesson-code-block mb-4"><code>{{ block.content }}</code></pre>
+                        {% elif block.block_type == 'ide-workspace' and block.env_key %}
+                            <div class="sandbox-container">
+                                <iframe src="{% url 'env_gateway' block.env_key %}?lesson={{ lesson.id }}&block={{ block.id }}"
+                                        data-env-frame="{{ block.id }}"
+                                        width="100%" height="480px" frameborder="0">
+                                </iframe>
+                            </div>
+                        {% elif block.block_type == 'challenge' %}
+                            <div class="card p-4 shadow border rounded-3 font-monospace mb-4 border-success">
+                                <h4 class="fw-bold text-success">Interactive Challenge</h4>
+                                {% if block.env_key %}
+                                    <div class="sandbox-container">
+                                        <iframe src="{% url 'env_gateway' block.env_key %}?lesson={{ lesson.id }}&block={{ block.id }}"
+                                                data-env-frame="{{ block.id }}"
+                                        width="100%" height="480px" frameborder="0">
+                                        </iframe>
+                                    </div>
+                                {% endif %}
+                                {% if block.hint %}
+                                    <p class="small text-muted mb-3">{{ block.hint }}</p>
+                                {% endif %}
+                                <textarea class="codeEditorInstance" data-block-id="{{ block.id }}">{{ block.content }}</textarea>
+                                <button type="button" class="btn btn-success mt-3 runBtn" data-block-id="{{ block.id }}">Execute Code</button>
+                                <div class="feedbackBox mt-3 d-none" data-block-id="{{ block.id }}"></div>
+                            </div>
+                        {% elif block.block_type == 'image' and block.image %}
+                            <img src="{{ block.image.url }}" alt="" class="img-fluid rounded-3 mb-4">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.QuantummEditors = {};
+    window.QuantummTerminals = {};
+
+    function getOrCreateTerminal(blockId, container) {
+        if (!container) return null;
+        if (window.Terminal && !window.QuantummTerminals[blockId]) {
+            container.innerHTML = "";
+            const terminal = new Terminal({
+                cursorBlink: true,
+                convertEol: true,
+                rows: 7,
+                theme: { background: "#050816", foreground: "#d1fae5" }
+            });
+            terminal.open(container);
+            window.QuantummTerminals[blockId] = terminal;
+        }
+        return window.QuantummTerminals[blockId] || null;
+    }
+
+    function writeTerminal(blockId, message) {
+        const container = document.querySelector(`.feedbackBox[data-block-id="${blockId}"]`);
+        if (!container) return;
+        container.classList.remove("d-none");
+        container.className = "feedbackBox mt-3 lab-terminal";
+        const terminal = getOrCreateTerminal(blockId, container);
+        if (terminal) {
+            terminal.writeln(message || "");
+        } else {
+            const line = document.createElement("div");
+            line.textContent = message || "";
+            container.appendChild(line);
+        }
+    }
+
+    window.addEventListener("message", (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data || {};
+        if (data.type === "quantumm:ide-resize" && data.block_id) {
+            const height = Math.min(880, Math.max(480, Number(data.height) || 480));
+            document.querySelectorAll("iframe[data-env-frame]").forEach((frame) => {
+                if (frame.dataset.envFrame === String(data.block_id)) frame.style.height = `${height}px`;
+            });
+            return;
+        }
+        if (data.type === "JUPYTER_CODE_SUBMISSION") {
+            submitCodeToBackend(data.code);
+        }
+    });
+
+    function submitCodeToBackend(code) {
+        fetch("/api/validate-code/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                code: code,
+                token: "{{ lesson.id }}"
+            })
+        })
+        .then(res => res.json())
+        .then(data => { alert("Code Verified: " + (data.message || data.output || data.status)); });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        function getLessonIdFromUrl() {
+            const parts = window.location.pathname.split("/").filter(Boolean);
+            const lastPart = parts[parts.length - 1];
+            return /^\d+$/.test(lastPart) ? lastPart : null;
+        }
+
+        const currentLessonId = getLessonIdFromUrl();
+
+        document.querySelectorAll(".codeEditorInstance").forEach(el => {
+            const editor = CodeMirror.fromTextArea(el, { mode: "python", theme: "dracula", lineNumbers: true });
+            const blockId = el.getAttribute("data-block-id");
+            const runBtn = document.querySelector(`.runBtn[data-block-id="${blockId}"]`);
+            const envFrame = document.querySelector(`iframe[data-env-frame="${blockId}"]`);
+            window.QuantummEditors[blockId] = editor;
+
+            if (runBtn) {
+                runBtn.addEventListener("click", function() {
+                    if (!currentLessonId) {
+                        alert("Error: Could not identify Lesson ID.");
+                        return;
+                    }
+
+                    writeTerminal(blockId, "quantumm@lab:~$ running validation...");
+
+                    fetch(`/check-code/${currentLessonId}/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ code: editor.getValue(), block_id: blockId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        writeTerminal(blockId, `${data.status}: ${data.message}`);
+                        if (data.output) writeTerminal(blockId, data.output);
+                    })
+                    .catch(() => {
+                        writeTerminal(blockId, "error: connection failed.");
+                    });
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

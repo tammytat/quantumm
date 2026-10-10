@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Technology Tracks | Quantum TechHub{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+<div class="bg-light py-5 border-bottom mb-5">
+    <div class="container text-center py-4">
+        <span class="badge bg-primary bg-opacity-10 text-primary mb-3 py-2 px-3 rounded-pill fw-bold text-uppercase">Curriculum Catalog</span>
+        <h1 class="display-5 fw-bold text-dark mb-2">Our Technical Training Tracks</h1>
+        <p class="lead text-muted mx-auto mb-0" style="max-width: 600px;">
+            Structured, hands-on syllabus tracks matching Nigerian educational standards. Move straight from theory into building code sandboxes and physical hardware assemblies.
+        </p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm transition-hover" style="border-radius: 15px; overflow: hidden; background: #ffffff;">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded text-primary">
+                            {% if "robot" in course.title.lower or "hardware" in course.title.lower %}
+                                <i class="bi bi-robot fs-4"></i>
+                            {% elif "data" in course.title.lower %}
+                                <i class="bi bi-bar-chart-line fs-4"></i>
+                            {% else %}
+                                <i class="bi bi-code-slash fs-4"></i>
+                            {% endif %}
+                        </div>
+                        
+                        {% if user.is_authenticated and course in my_courses %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-1 px-2.5 rounded-pill small">Enrolled</span>
+                        {% else %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 py-1 px-2.5 rounded-pill small">₦{{ course.price }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="fw-bold mb-2 text-dark">{{ course.title }}</h4>
+                    <p class="text-muted small mb-4" style="line-height: 1.6;">{{ course.description|truncatewords:22 }}</p>
+                    
+                    <div class="mt-auto pt-3 border-top border-light">
+                        <div class="d-flex align-items-center justify-content-between mb-3 small text-muted">
+                            <span><i class="bi bi-book-half me-1"></i> Practical Labs</span>
+                            <span class="fw-bold text-dark">{{ course.modules.count|default:"Multiple" }} Modules</span>
+                        </div>
+                        
+                        {% if user.is_authenticated %}
+                            {% if course in my_courses %}
+                                <a href="{% url 'single_course_view' course.slug %}" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                                    Enter Classroom <i class="bi bi-arrow-right ms-2"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'checkout' course.slug %}" class="btn btn-outline-primary w-100 fw-bold py-2 shadow-sm">
+                                    Enroll Now <i class="bi bi-shield-lock-fill ms-2"></i>
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'index' %}?tab=login" class="btn btn-outline-primary w-100 fw-bold py-2 shadow-sm">
+                                Login to Enroll <i class="bi bi-box-arrow-in-right ms-2"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 border rounded-3 bg-white shadow-sm">
+            <div class="display-3 mb-3">📚</div>
+            <h4 class="text-dark fw-bold mb-2">Catalog Under Maintenance</h4>
+            <p class="text-muted mx-auto mb-0" style="max-width: 480px;">New cutting-edge course workflows are currently being scheduled by our instruction engineering teams.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .transition-hover { transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease; }
+    .transition-hover:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.08) !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5 py-4" style="position: relative; z-index: 1;">
+    
+    <!-- RETURN NAVIGATION LINK -->
+    <div class="mb-4" style="position: relative; z-index: 10;">
+        <a href="{% url 'mini_admin_lesson_list' %}" class="text-decoration-none text-muted small fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Return to Studio Catalog
+        </a>
+    </div>
+
+    <!-- MAIN GRID CONTEXT -->
+    <div class="row g-4 justify-content-center" style="position: relative; z-index: 2;">
+        
+        <!-- CENTERED COURSE CANVAS HUB -->
+        <div class="col-lg-9" style="position: relative; z-index: 20;">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+                
+                <!-- HEADER STRIP -->
+                <div class="p-4 p-md-5 bg-dark text-white">
+                    <h3 class="fw-bold mb-1">Initialize Course Track</h3>
+                    <p class="text-muted small mb-0">Establish core parameters and interactive sandbox workspaces for your curriculum track.</p>
+                </div>
+
+                <!-- FORM INPUT BLOCK -->
+                <div class="card-body p-4 p-md-5" style="position: relative; z-index: 30;">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger rounded-3 p-3 mb-4 small">
+                                <strong class="d-block mb-1">⚠️ Validation Errors:</strong>
+                                <ul class="mb-0 ps-3">
+                                {% for field, errors in form.errors.items %}
+                                    <li><strong>{{ field|capfirst }}:</strong> {{ errors|striptags }}</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- ENGINE FIELD INTERPRETER -->
+                        {% for field in form %}
+                            <div class="mb-4" style="position: relative; z-index: 40;">
+                                <label class="form-label fw-bold text-dark small mb-1 d-block">{{ field.label }}</label>
+                                <div class="form-field-container">
+                                    {{ field }}
+                                </div>
+                                {% if field.help_text %}<div class="form-text text-muted small mt-1">{{ field.help_text }}</div>{% endif %}
+                                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|striptags }}</div>{% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <!-- FORM ACTION BUTTONS -->
+                        <div class="d-flex flex-column flex-sm-row gap-3 mt-5" style="position: relative; z-index: 50;">
+                            <button type="submit" class="btn btn-dark btn-lg px-5 rounded-3 fw-bold py-3 flex-grow-1">
+                                Save & Build Syllabus
+                            </button>
+                            <a href="{% url 'mini_admin_lesson_list' %}" class="btn btn-light btn-lg px-4 rounded-3 text-muted py-3 border">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- SMART RENDERING ENGINE DECORATOR -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.form-field-container input, .form-field-container textarea, .form-field-container select').forEach(element => {
+            element.style.pointerEvents = "auto";
+            element.style.position = "relative";
+            element.style.zindex = "100";
+        });
+    });
+</script>
+
+<style>
+    /* Absolute overlay bypass protection */
+    .form-field-container {
+        position: relative !important;
+        z-index: 99 !important;
+        pointer-events: auto !important;
+        display: block !important;
+        width: 100% !important;
+    }
+    .form-field-container input, 
+    .form-field-container textarea,
+    .form-field-container select {
+        display: block !important;
+        width: 100% !important;
+        background-color: #ffffff !important;
+        color: #212529 !important;
+        pointer-events: auto !important;
+    }
+</style>
+{% endblock %}

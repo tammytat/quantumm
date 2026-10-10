@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard Workspace | Quantum TechHub{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+
+<div class="container mt-5">
+    {% if not user.is_authenticated %}
+        <div class="row align-items-center py-5">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3 py-2 px-3 rounded-pill">Welcome to Quantum Tech Hub</span>
+                <h1 class="display-4 fw-bold text-dark mb-3">Learn Coding, Data Science & Robotics</h1>
+                <p class="lead text-muted">A hands-on workspace built for students to learn Python pipeline automation, physical computing engineering, and structural programming.</p>
+                
+                <div class="row mt-4 g-3">
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 bg-white shadow-sm rounded text-center border">
+                            <h3 class="mb-0">🤖</h3>
+                            <small class="fw-bold text-secondary">Hardware & Robotics</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 bg-white shadow-sm rounded text-center border">
+                            <h3 class="mb-0">🐍</h3>
+                            <small class="fw-bold text-secondary">Python Programming</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 bg-white shadow-sm rounded text-center border">
+                            <h3 class="mb-0">📊</h3>
+                            <small class="fw-bold text-secondary">Data Analytics</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 offset-lg-1">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm mb-3" role="alert" style="border-radius: 12px;">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="card shadow-lg border-0 p-4" style="border-radius: 20px;">
+                    
+                    <ul class="nav nav-pills nav-justified mb-4 bg-light p-1 rounded-pill" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-index-tab nav-link active rounded-pill fw-bold" id="login-tab" type="button" role="tab" aria-selected="true">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-index-tab nav-link rounded-pill fw-bold" id="signup-tab" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-person-plus me-1"></i> Create Profile
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="authTabsContent">
+                        
+                        <div class="tab-pane fade show active" id="login-pane" role="tabpanel" aria-labelledby="login-tab">
+                            <div class="text-center mb-4">
+                                <h4 class="fw-bold text-dark">Student Access Portal</h4>
+                                <p class="text-muted small">Sign in to your learning workspace sandbox</p>
+                            </div>
+                            <form method="POST" action="{% url 'login' %}">
+                                {% csrf_token %}
+                                
+                                <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Username</label>
+                                    <input type="text" name="username" class="form-control form-control-lg border-2" placeholder="Enter username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Password</label>
+                                    <div class="input-group">
+                                        <input type="password" id="loginPassword" name="password" class="form-control form-control-lg border-2 border-end-0" placeholder="••••••••" required>
+                                        <button class="btn btn-outline-secondary border-2 border-start-0" type="button" onclick="togglePassword('loginPassword', 'loginIcon')">
+                                            <i id="loginIcon" class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm mt-2">
+                                    Launch My Dashboard <i class="bi bi-rocket-takeoff ms-2"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="signup-pane" role="tabpanel" aria-labelledby="signup-tab">
+                            <div class="text-center mb-4">
+                                <h4 class="fw-bold text-dark">New Student Registration</h4>
+                                <p class="text-muted small">Configure your hub learning credentials</p>
+                            </div>
+                            <form method="POST" action="{% url 'signup' %}">
+                                {% csrf_token %}
+                                
+                                <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Choose Username</label>
+                                    <input type="text" name="username" class="form-control form-control-lg border-2" placeholder="e.g., tech_cadet" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Email Address</label>
+                                    <input type="email" name="email" class="form-control form-control-lg border-2" placeholder="student@example.com" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Password</label>
+                                    <div class="input-group">
+                                        <input type="password" id="signupPassword" name="password" class="form-control form-control-lg border-2 border-end-0" placeholder="Create password" required>
+                                        <button class="btn btn-outline-secondary border-2 border-start-0" type="button" onclick="togglePassword('signupPassword', 'signupIcon')">
+                                            <i id="signupIcon" class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-secondary">Confirm Password</label>
+                                    <div class="input-group">
+                                        <input type="password" id="confirmPassword" name="password_confirm" class="form-control form-control-lg border-2 border-end-0" placeholder="Repeat password" required>
+                                        <button class="btn btn-outline-secondary border-2 border-start-0" type="button" onclick="togglePassword('confirmPassword', 'confirmIcon')">
+                                            <i id="confirmIcon" class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn bg-gradient btn-success btn-lg w-100 fw-bold shadow-sm text-white mt-2">
+                                    Initialize Account <i class="bi bi-shield-check ms-2"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted small mb-0">Need multi-seat laboratory tokens? Contact your administrator.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="row mb-5 align-items-center g-4">
+            <div class="col-md-7">
+                <h2 class="fw-bold text-dark mb-1">Welcome back, {{ user.username }}! 👋</h2>
+                <p class="text-muted mb-0">Track your progress, launch code sandboxes, and build physical computing assemblies.</p>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="bg-white border rounded-3 p-3 shadow-sm d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-warning bg-opacity-15 text-warning p-2 rounded-3 fs-3">
+                            ⭐
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">{{ profile.points }} XP Accumulated</h6>
+                            <small class="text-muted text-uppercase small">Rank: {{ profile.get_rank|default:"Code Cadet" }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success py-2 px-3 rounded-pill shadow-sm small">Active Student</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            {% if is_registered_student %}
+                <h3 class="fw-bold text-dark"><i class="bi bi-journal-code text-primary me-2"></i>Your Active Training Pipeline</h3>
+                <p class="text-muted small">Launch your workspace streams for your registered courses below.</p>
+            {% else %}
+                <h3 class="fw-bold text-dark"><i class="bi bi-rocket-takeoff text-primary me-2"></i>Available Hub Tracks</h3>
+                <p class="text-muted small">You haven't unlocked any courses yet. Choose a path below to get started with your practical toolkits.</p>
+            {% endif %}
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-5">
+                <div class="bg-white border rounded-3 p-3 shadow-sm h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-bullseye text-success me-2"></i>Skill Map</h5>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Lab Journal</span>
+                    </div>
+                    <canvas id="skillMapChart" height="260"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="bg-white border rounded-3 p-3 shadow-sm h-100">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-cpu text-primary me-2"></i>Environment Toolkit</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="toolkit-tile">
+                                <i class="bi bi-window-sidebar text-primary"></i>
+                                <strong>Monaco-Style IDE</strong>
+                                <span>Professional coding workspace for Python lessons.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="toolkit-tile">
+                                <i class="bi bi-table text-success"></i>
+                                <strong>JupyterLite</strong>
+                                <span>Notebook labs with browser-local datasets.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="toolkit-tile">
+                                <i class="bi bi-usb-plug text-info"></i>
+                                <strong>Hardware Bridge</strong>
+                                <span>Simulation and Web Serial flashing path.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for course in courses %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm transition-hover" style="border-radius: 15px;">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="p-2 bg-primary bg-opacity-10 rounded text-primary">
+                                {% if "robot" in course.title.lower or "hardware" in course.title.lower %}
+                                    <i class="bi bi-robot fs-4"></i>
+                                {% elif "data" in course.title.lower %}
+                                    <i class="bi bi-bar-chart-line fs-4"></i>
+                                {% else %}
+                                    <i class="bi bi-code-slash fs-4"></i>
+                                {% endif %}
+                            </div>
+                            
+                            {% if course in my_courses %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-1 px-2.5 rounded-pill small">Enrolled</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 py-1 px-2.5 rounded-pill small">Available Track</span>
+                            {% endif %}
+                        </div>
+                        
+                        <h4 class="fw-bold mb-2 text-dark">{{ course.title }}</h4>
+                        <p class="text-muted small mb-4">{{ course.description|truncatewords:18 }}</p>
+                        
+                        <div class="mt-auto">
+                            {% if course in my_courses %}
+                                <a href="{% url 'single_course_view' course.slug %}" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                                    Enter Classroom <i class="bi bi-arrow-right ms-2"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'single_course_view' course.slug %}" class="btn btn-outline-primary w-100 fw-bold py-2 shadow-sm">
+                                    Unlock Course <i class="bi bi-shield-lock-fill ms-2"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5 border rounded-3 bg-light bg-opacity-50">
+                <div class="display-3 mb-3">📚</div>
+                <h4 class="text-dark fw-bold mb-2">No Tracks Assigned</h4>
+                <p class="text-muted mx-auto mb-4" style="max-width: 480px;">No technical curriculums match this view slice engine state.</p>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        }
+    }
+
+    // FAIL-SAFE MANUAL TAB SWITCHER ENGINE
+    document.addEventListener("DOMContentLoaded", function() {
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const loginPane = document.getElementById('login-pane');
+        const signupPane = document.getElementById('signup-pane');
+
+        function switchWorkspaceTab(target) {
+            if (target === 'signup') {
+                // Update tabs headers visual state
+                loginTab.classList.remove('active');
+                loginTab.setAttribute('aria-selected', 'false');
+                signupTab.classList.add('active');
+                signupTab.setAttribute('aria-selected', 'true');
+                
+                // Switch entry panels
+                loginPane.classList.remove('show', 'active');
+                signupPane.classList.add('show', 'active');
+            } else {
+                // Update tabs headers visual state
+                signupTab.classList.remove('active');
+                signupTab.setAttribute('aria-selected', 'false');
+                loginTab.classList.add('active');
+                loginTab.setAttribute('aria-selected', 'true');
+                
+                // Switch entry panels
+                signupPane.classList.remove('show', 'active');
+                loginPane.classList.add('show', 'active');
+            }
+        }
+
+        // Click Event Listeners
+        if (loginTab && signupTab) {
+            loginTab.addEventListener('click', function() { switchWorkspaceTab('login'); });
+            signupTab.addEventListener('click', function() { switchWorkspaceTab('signup'); });
+        }
+
+        // Handle URL parameter processing (?tab=signup or #signup-pane)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (window.location.hash === "#signup-pane" || tabParam === "signup") {
+            switchWorkspaceTab('signup');
+        } else if (window.location.hash === "#login-pane" || tabParam === "login") {
+            switchWorkspaceTab('login');
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const chartEl = document.getElementById("skillMapChart");
+        if (!chartEl || !window.Chart) return;
+
+        const points = Number("{{ profile.points|default:0 }}");
+        const pythonSignal = Math.min(100, 25 + points);
+        const dataSignal = Math.min(100, 15 + Math.floor(points * 0.7));
+        const circuitSignal = Math.min(100, 20 + Math.floor(points * 0.55));
+        const embeddedSignal = Math.min(100, 10 + Math.floor(points * 0.45));
+        const labSignal = Math.min(100, 30 + Math.floor(points * 0.6));
+
+        new Chart(chartEl, {
+            type: "radar",
+            data: {
+                labels: ["Python Basics", "Data Science", "Circuit Theory", "Embedded Systems", "Lab Practice"],
+                datasets: [{
+                    label: "Competency",
+                    data: [pythonSignal, dataSignal, circuitSignal, embeddedSignal, labSignal],
+                    borderColor: "#198754",
+                    backgroundColor: "rgba(25, 135, 84, 0.18)",
+                    pointBackgroundColor: "#0d6efd",
+                    pointBorderColor: "#ffffff",
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { stepSize: 20 },
+                        grid: { color: "rgba(15, 23, 42, 0.12)" },
+                        angleLines: { color: "rgba(15, 23, 42, 0.12)" }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+</script>
+
+<style>
+    .transition-hover { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease; }
+    .transition-hover:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.08) !important; }
+    .bg-warning.bg-opacity-15 { background-color: rgba(255, 193, 7, 0.15); }
+    .nav-index-tab.nav-link { color: #64748b; border: none; background: transparent; width: 100%; text-align: center; }
+    .nav-index-tab.nav-link.active { background-color: #ffffff !important; color: #0d6efd !important; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .btn-success.bg-gradient { background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0)); }
+    .input-group .btn { z-index: 4; }
+    .toolkit-tile { min-height: 148px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; background: #f8fafc; }
+    .toolkit-tile i { font-size: 1.7rem; }
+    .toolkit-tile strong { color: #0f172a; }
+    .toolkit-tile span { color: #64748b; font-size: 0.875rem; line-height: 1.35; }
+</style>
+{% endblock %}

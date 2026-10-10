@@ -1,0 +1,14 @@
+{% extends 'environments/base_env.html' %}
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.0.0/lib/xterm.js"></script>
+{% endblock %}
+{% block env_content %}
+    <div id="terminal" style="height: 400px; background: #000;"></div>
+{% endblock %}
+{% block extra_scripts %}
+    <script>
+        var term = new Terminal();
+        term.open(document.getElementById('terminal'));
+        term.onData(e => runCode(e, '{{ lesson.id }}', 'security'));
+    </script>
+{% endblock %}

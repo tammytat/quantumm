@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us | Quantum TechHub{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 650px;">
+    
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-dark">Get in Touch</h2>
+        <p class="text-muted small">Have questions about our laboratory training tracks or multi-seat packages? Send us a message.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm mb-4" role="alert" style="border-radius: 12px;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border p-4" style="border-radius: 16px; background-color: #ffffff;">
+        <form method="POST" action="{% url 'contact' %}">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-secondary">Full Name</label>
+                <input type="text" name="name" class="form-control border-2" placeholder="Your name" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-secondary">Email Address</label>
+                <input type="email" name="email" class="form-control border-2" placeholder="you@example.com" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-secondary">Subject</label>
+                <input type="text" name="subject" class="form-control border-2" placeholder="e.g., School Robotics Training Inquiry" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-secondary">Message Details</label>
+                <textarea name="message" rows="5" class="form-control border-2" placeholder="Type your practical requirement details here..." required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" style="border-radius: 8px;">
+                Send Message <i class="bi bi-send ms-2"></i>
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

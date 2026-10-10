@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- --- GLOBAL PREMIUM INTERFACE STYLES --- -->
+<style>
+    .transition-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.08) !important;
+    }
+    .bg-gradient-dark {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+    .text-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #20c997 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .x-small {
+        font-size: 0.75rem;
+    }
+    .italic {
+        font-style: italic;
+    }
+</style>
+
+<!-- Top margin set to mt-0 to maintain strict navigation alignment -->
+<div class="container mt-0 py-5">
+
+    <!-- --- BREADCRUMB / BACK TO HOME LINK --- -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}" class="text-primary text-decoration-none d-inline-flex align-items-center fw-semibold">
+                    <i class="bi bi-arrow-left me-2"></i> Return to Home Platform
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Course Catalog</li>
+        </ol>
+    </nav>
+
+    <!-- --- CORE HEADER BLOCK --- -->
+    <div class="row align-items-center mb-5 g-4">
+        <div class="col-md-7">
+            <span class="badge bg-soft-success text-success mb-2 py-2 px-3 border border-success rounded-pill fw-bold">Live Training Academy</span>
+            <h1 class="display-5 fw-bold text-dark mb-2">Explore Our Curriculum Parameters</h1>
+            <p class="lead text-muted mb-0">Project-based learning sandboxes designed to scale your software engineering and physical computing skillsets.</p>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <div class="p-3 bg-light rounded-3 d-inline-block text-start border shadow-xs">
+                <small class="text-muted d-block uppercase fw-bold x-small tracking-wider">Live Repository</small>
+                <span class="h5 fw-bold text-dark mb-0 d-flex align-items-center">
+                    <span class="spinner-grow spinner-grow-sm text-success me-2" role="status"></span>
+                    {{ courses|length }} Programs Available
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- CORE DYNAMIC COURSE MATRIX LOOP --- -->
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm transition-hover" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-body p-4 d-flex flex-column">
+                    
+                    <!-- Top Ribbon Parameters -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="p-2 bg-primary bg-opacity-10 rounded-3 text-primary">
+                            {% if "robotics" in course.title|lower or "arduino" in course.title|lower %}
+                                <i class="bi bi-cpu-fill fs-4"></i>
+                            {% else %}
+                                <i class="bi bi-terminal-fill fs-4"></i>
+                            {% endif %}
+                        </div>
+                        {% if course.price > 0 %}
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-xs fw-bold">₦{{ course.price }}</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-xs fw-bold">Paid Track</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Metadata Info -->
+                    <h3 class="fw-bold h4 mb-2 text-dark">{{ course.title }}</h3>
+                    <p class="text-muted small mb-4">{{ course.description|truncatewords:20 }}</p>
+                    
+                    <!-- Live Dynamic Preview Loops -->
+                    <div class="list-group list-group-flush mb-4 small border-top pt-3">
+                        <p class="fw-bold text-uppercase x-small text-muted mb-2 tracking-wider">Syllabus Outline Modules:</p>
+                        {% for module in course.modules.all|slice:":3" %}
+                            <div class="py-1 text-dark d-flex align-items-center justify-content-between">
+                                <span class="text-truncate me-2">
+                                    <i class="bi bi-bookmark-fill text-primary me-2 opacity-75 small"></i> {{ module.title }}
+                                </span>
+                                <span class="badge bg-light text-secondary rounded-pill x-small">{{ module.lessons.count }} Lessons</span>
+                            </div>
+                        {% empty %}
+                            <div class="py-1 text-muted italic small">Detailed engineering modules uploading shortly...</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Direct Access Control Link Blocks -->
+                    <div class="mt-auto">
+                        {% if user.is_authenticated and user.is_staff or user in course.students.all %}
+                            <a href="{% url 'single_course_view' course.slug %}" class="btn btn-primary w-100 fw-bold py-2 shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 10px;">
+                                Launch Classroom <i class="bi bi-arrow-right ms-2"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'checkout' course.slug %}" class="btn btn-success w-100 fw-bold py-2 shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 10px;">
+                                Unlock Full Parameters <i class="bi bi-unlock-fill ms-2"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Catch Engine if Database list query is currently void -->
+        <div class="col-12 text-center py-5">
+            <div class="p-4 bg-light rounded-circle d-inline-block mb-3">
+                <span class="display-3">📚</span>
+            </div>
+            <h4 class="fw-bold text-dark">The Course Portal is Currently Syncing</h4>
+            <p class="text-muted small max-w-md mx-auto" style="max-width: 420px;">We are uploading raw syllabus arrays to the primary server databases. Check back momentarily to unlock registration channels!</p>
+            <a href="{% url 'home' %}" class="btn btn-outline-primary fw-bold mt-3 px-4" style="border-radius: 10px;">
+                Return Home Dashboard
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

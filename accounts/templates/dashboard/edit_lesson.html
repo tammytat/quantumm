@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Main Matrix Wrap: Enforce container safety and base stacking -->
+<div class="container my-5 py-4" style="position: relative; z-index: 1; pointer-events: auto;">
+    
+    <!-- Navigation Return Path -->
+    <div class="mb-4" style="position: relative; z-index: 10; pointer-events: auto;">
+        <a href="{% url 'mini_admin_lesson_list' %}" class="text-decoration-none text-muted small fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Return to Studio Catalog
+        </a>
+    </div>
+
+    <!-- Main Workspace Grid Layout -->
+    <div class="row g-4" style="position: relative; z-index: 2; pointer-events: auto;">
+        
+        <!-- Left Sidebar Section: Active Syllabus Context Map -->
+        <div class="col-lg-4" style="pointer-events: auto;">
+            <div class="card border-0 shadow-lg rounded-4 p-4 bg-white sticky-top" style="top: 2rem; z-index: 5; pointer-events: auto;">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-diagram-3-fill me-2 text-dark"></i>Your Active Syllabus Maps
+                </h5>
+                <hr class="my-3 opacity-10">
+                
+                {% if instructor_courses %}
+                    <div class="accordion accordion-flush" id="courseCurriculumMap" style="pointer-events: auto;">
+                        {% for course in instructor_courses %}
+                            <div class="accordion-item bg-transparent border-0 mb-2" style="pointer-events: auto;">
+                                <h2 class="accordion-header" id="heading-{{ course.id }}">
+                                    <button class="accordion-button collapsed rounded-3 fw-semibold text-dark bg-light p-3 border" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ course.id }}" style="pointer-events: auto;">
+                                        {{ course.title }}
+                                    </button>
+                                </h2>
+                                <div id="collapse-{{ course.id }}" class="accordion-collapse collapse" data-bs-parent="#courseCurriculumMap" style="pointer-events: auto;">
+                                    <div class="accordion-body ps-2 py-2">
+                                        <ul class="list-group list-group-flush border rounded-3 overflow-hidden">
+                                            {% for mod in course.modules.all %}
+                                                <li class="list-group-item bg-white small text-secondary py-2">
+                                                    <i class="bi bi-folder-symlink me-2 text-dark"></i>{{ mod.title }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Side Grid Section: Main Interactive Workspace Workspace Form -->
+        <div class="col-lg-8" style="position: relative; z-index: 20; pointer-events: auto;">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white" style="pointer-events: auto;">
+                
+                <!-- Card Header Banner Component -->
+                <div class="p-4 p-md-5 bg-dark text-white">
+                    <h3 class="fw-bold mb-1">{{ page_title }}</h3>
+                    <p class="text-muted small mb-0">Publish configuration updates securely to your curriculum deployment matrix.</p>
+                </div>
+
+                <!-- Form Dynamic Content Container Body -->
+                <div class="card-body p-4 p-md-5" style="position: relative; z-index: 30; pointer-events: auto;">
+                    <form method="POST" enctype="multipart/form-data" style="pointer-events: auto;">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger rounded-3 p-3 mb-4 small" style="pointer-events: auto;">
+                                <strong class="d-block mb-1">⚠️ Validation Errors:</strong>
+                                <ul class="mb-0 ps-3">
+                                {% for field, errors in form.errors.items %}
+                                    <li><strong>{{ field|capfirst }}:</strong> {{ errors|striptags }}</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- PHASE 1: Render All Core Interactive Input Text & Data Field Blocks Dynamically -->
+                        <div class="row g-3 mb-4" style="pointer-events: auto;">
+                            {% for field in form %}
+                                {% if field.field.widget.input_type != 'checkbox' %}
+                                    <div class="col-12 {% if field.name == 'order' %}col-md-4{% endif %} mb-3" style="position: relative; z-index: 40; pointer-events: auto;">
+                                        <label class="form-label fw-bold text-dark small mb-1 d-block" for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                        </label>
+                                        <div class="form-field-container">
+                                            {{ field }}
+                                        </div>
+                                        {% if field.help_text %}
+                                            <div class="form-text text-muted small mt-1">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% if field.errors %}
+                                            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- PHASE 2: Render All Admin Checkboxes Automatically in a Specialized Features Grid Layout -->
+                        <div class="card border border-light-subtle shadow-sm mb-4" style="border-radius: 12px; background-color: #f8fafc; position: relative; z-index: 40; pointer-events: auto;">
+                            <div class="card-body p-4" style="pointer-events: auto;">
+                                <h6 class="text-primary fw-bold mb-2">
+                                    <i class="bi bi-toggle-on me-1"></i> Workspace Component Matrix
+                                </h6>
+                                <p class="text-muted small mb-4">Select which interactive sandbox modules should instantly mount inside the student learning environment for this lesson:</p>
+                                
+                                <div class="row g-3" style="pointer-events: auto;">
+                                    {% for field in form %}
+                                        {% if field.field.widget.input_type == 'checkbox' %}
+                                            <div class="col-md-6" style="pointer-events: auto;">
+                                                <div class="form-check form-switch p-3 bg-white border rounded-3 d-flex align-items-center justify-content-between h-100 shadow-sm form-field-container">
+                                                    <div class="me-3">
+                                                        <label class="form-check-label fw-semibold text-dark d-block mb-1" for="{{ field.id_for_label }}">
+                                                            {{ field.label }}
+                                                        </label>
+                                                        <span class="text-muted small d-block" style="font-size: 0.75rem; line-height: 1.3;">
+                                                            {% if field.help_text %}
+                                                                {{ field.help_text }}
+                                                            {% else %}
+                                                                Toggles frontend deployment visibility for this specific interface canvas asset.
+                                                            {% endif %}
+                                                        </span>
+                                                    </div>
+                                                    <div class="form-check-size fs-4">
+                                                        {{ field }}
+                                                    </div>
+                                                </div>
+                                                {% if field.errors %}
+                                                    <div class="text-danger small mt-1 px-2">{{ field.errors|striptags }}</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PHASE 3: Lesson Blocks Formset Section -->
+                        <div class="card border border-light-subtle shadow-sm mb-4" style="border-radius: 12px; background-color: #fff5f7; position: relative; z-index: 40; pointer-events: auto;">
+                            <div class="card-body p-4" style="pointer-events: auto;">
+                                <h6 class="text-danger fw-bold mb-2">
+                                    <i class="bi bi-layers me-1"></i> Lesson Content Blocks
+                                </h6>
+                                <p class="text-muted small mb-4">Add content blocks to build your lesson (text, images, videos, code challenges, etc.):</p>
+                                
+                                {% if formset.non_form_errors %}
+                                    <div class="alert alert-danger rounded-3 p-3 mb-3 small">
+                                        <strong>{{ formset.non_form_errors|striptags }}</strong>
+                                    </div>
+                                {% endif %}
+
+                                <div class="dynamic-formset" style="pointer-events: auto;">
+                                    {{ formset.management_form }}
+                                    {% for form in formset %}
+                                        <div class="card bg-white border mb-3 dynamic-lessonblock_set" style="pointer-events: auto;">
+                                            <div class="card-body p-3" style="pointer-events: auto;">
+                                                {% if form.non_field_errors %}
+                                                    <div class="alert alert-danger small mb-2">{{ form.non_field_errors|striptags }}</div>
+                                                {% endif %}
+
+                                                <div class="row g-2" style="pointer-events: auto;">
+                                                    <div class="col-md-2" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold">Order</label>
+                                                        {{ form.order }}
+                                                    </div>
+                                                    <div class="col-md-4" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold">Block Type</label>
+                                                        {{ form.block_type }}
+                                                    </div>
+                                                    <div class="col-md-4" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold field-env_key">Environment</label>
+                                                        <div class="field-env_key">
+                                                            {{ form.env_key }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2 d-flex align-items-end" style="pointer-events: auto;">
+                                                        {% if form.DELETE %}
+                                                            <div class="form-check">
+                                                                <label class="form-check-label small">
+                                                                    {{ form.DELETE }} Delete
+                                                                </label>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+                                                <div class="row g-2 mt-2" style="pointer-events: auto;">
+                                                    <div class="col-12 field-content" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold">Content</label>
+                                                        {{ form.content }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="row g-2 mt-2" style="pointer-events: auto;">
+                                                    <div class="col-md-6 field-image" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold">Image Upload</label>
+                                                        {{ form.image }}
+                                                        {% if form.image.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.image.errors|striptags }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-md-6 field-hint" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold">Hint</label>
+                                                        {{ form.hint }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="row g-2 mt-2" style="pointer-events: auto;">
+                                                    <div class="col-12 field-expected_output" style="pointer-events: auto;">
+                                                        <label class="form-label small fw-bold">Expected Output</label>
+                                                        {{ form.expected_output }}
+                                                    </div>
+                                                </div>
+
+                                                {% for field in form.hidden_fields %}
+                                                    {{ field }}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submission Panel Controls -->
+                        <div class="d-flex flex-column flex-sm-row gap-3 mt-5" style="position: relative; z-index: 50; pointer-events: auto;">
+                            <button type="submit" class="btn btn-dark btn-lg px-5 rounded-3 fw-bold py-3 flex-grow-1" style="pointer-events: auto; cursor: pointer;">
+                                Save Lesson Record
+                            </button>
+                            <a href="{% url 'mini_admin_lesson_list' %}" class="btn btn-light btn-lg px-4 rounded-3 text-muted py-3 border" style="pointer-events: auto; cursor: pointer;">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Native DOM Scripting Level Injectors -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Form field processing loop
+        document.querySelectorAll('.form-field-container input, .form-field-container textarea, .form-field-container select').forEach(element => {
+            if (element.type !== 'checkbox' && element.type !== 'radio') {
+                element.className = "form-control bg-white text-dark border p-3 rounded-3 shadow-sm";
+            }
+            if (element.tagName.toLowerCase() === 'select') {
+                element.className = "form-select bg-white text-dark border p-3 rounded-3 shadow-sm";
+            }
+            // Enforce input pointer properties explicitly via JavaScript
+            element.style.pointerEvents = "auto";
+            element.style.cursor = "text";
+            element.style.position = "relative";
+            element.style.zIndex = "100";
+        });
+        
+        // Specialized logic loop explicitly for bootstrap toggle elements
+        document.querySelectorAll('.form-field-container input[type="checkbox"]').forEach(checkbox => {
+            checkbox.style.cursor = "pointer";
+        });
+
+        // Apply styling to formset fields
+        document.querySelectorAll('.dynamic-formset input, .dynamic-formset textarea, .dynamic-formset select').forEach(element => {
+            if (element.type !== 'checkbox' && element.type !== 'radio' && element.name !== 'csrfmiddlewaretoken') {
+                if (element.tagName.toLowerCase() === 'select') {
+                    element.className = "form-select bg-white text-dark border p-2 rounded-2 shadow-sm form-control";
+                } else if (element.type === 'file') {
+                    element.className = "form-control bg-white text-dark border p-2 rounded-2 shadow-sm";
+                } else {
+                    element.className = "form-control bg-white text-dark border p-2 rounded-2 shadow-sm";
+                }
+            }
+        });
+
+        // Initialize block visibility logic
+        function initBlockVisibility() {
+            document.querySelectorAll('.dynamic-lessonblock_set').forEach(row => {
+                const typeSelect = row.querySelector('select[name$="-block_type"]');
+                if (!typeSelect) return;
+
+                const fieldsToToggle = {
+                    'env_key': row.querySelector('[name$="-env_key"]'),
+                    'content': row.querySelector('[name$="-content"]'),
+                    'image': row.querySelector('[name$="-image"]'),
+                    'hint': row.querySelector('[name$="-hint"]'),
+                    'expected_output': row.querySelector('[name$="-expected_output"]')
+                };
+
+                const toggleFields = () => {
+                    const blockType = typeSelect.value;
+                    
+                    // Hide all fields by default
+                    Object.values(fieldsToToggle).forEach(f => {
+                        if (f) f.parentElement.style.display = 'none';
+                    });
+
+                    // Show relevant fields based on block type
+                    if (blockType === 'text') {
+                        if (fieldsToToggle.content) fieldsToToggle.content.parentElement.style.display = '';
+                    } else if (blockType === 'code' || blockType === 'challenge') {
+                        if (fieldsToToggle.content) fieldsToToggle.content.parentElement.style.display = '';
+                        if (blockType === 'challenge') {
+                            if (fieldsToToggle.env_key) fieldsToToggle.env_key.parentElement.style.display = '';
+                            if (fieldsToToggle.hint) fieldsToToggle.hint.parentElement.style.display = '';
+                            if (fieldsToToggle.expected_output) fieldsToToggle.expected_output.parentElement.style.display = '';
+                        }
+                    } else if (blockType === 'ide-workspace') {
+                        if (fieldsToToggle.env_key) fieldsToToggle.env_key.parentElement.style.display = '';
+                    } else if (blockType === 'image') {
+                        if (fieldsToToggle.image) fieldsToToggle.image.parentElement.style.display = '';
+                    } else if (blockType === 'video') {
+                        if (fieldsToToggle.content) fieldsToToggle.content.parentElement.style.display = '';
+                    }
+                };
+
+                typeSelect.addEventListener('change', toggleFields);
+                toggleFields();
+            });
+        }
+
+        initBlockVisibility();
+    });
+</script>
+
+<!-- Global Context Layout Style Safety Layer Overrides -->
+<style>
+    /* Force form field structural block tags to prioritize mouse paths */
+    .form-field-container {
+        position: relative !important;
+        z-index: 99 !important;
+        pointer-events: auto !important;
+    }
+    .form-field-container input[type="text"], 
+    .form-field-container input[type="number"], 
+    .form-field-container input[type="url"], 
+    .form-field-container textarea, 
+    .form-field-container select {
+        display: block !important;
+        width: 100% !important;
+        background-color: #ffffff !important;
+        color: #212529 !important;
+        pointer-events: auto !important;
+        cursor: text !important;
+    }
+    .form-field-container select {
+        cursor: pointer !important;
+    }
+    .form-field-container input[type="checkbox"] {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        z-index: 100 !important;
+    }
+</style>
+{% endblock %}

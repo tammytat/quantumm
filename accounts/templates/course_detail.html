@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} | Quantum TechHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <a href="{% url 'our_courses' %}" class="text-decoration-none small text-muted"><i class="bi bi-arrow-left me-1"></i>Back to courses</a>
+            <div class="card border-0 shadow-sm mt-3" style="border-radius: 16px;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+                        <div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2">Course</span>
+                            <h1 class="fw-bold mb-2">{{ course.title }}</h1>
+                            <p class="text-muted mb-0">{{ course.description }}</p>
+                        </div>
+                        <div class="text-md-end">
+                            <div class="fs-3 fw-bold text-primary">NGN {{ course.price }}</div>
+                            <small class="text-muted">One-time enrollment</small>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-4">
+                        <h5 class="fw-bold mb-3">Course curriculum</h5>
+                        {% for module in course.modules.all %}
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span><i class="bi bi-journal-text text-primary me-2"></i>{{ module.title }}</span>
+                                <small class="text-muted">{{ module.lessons.count }} lesson{{ module.lessons.count|pluralize }}</small>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted mb-0">The curriculum is being prepared.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4">
+                        {% if not request.user.is_authenticated %}
+                            <a href="{% url 'index' %}?tab=login" class="btn btn-outline-primary btn-lg w-100 fw-bold">Sign in to enroll</a>
+                        {% elif request.user in course.students.all or request.user.is_staff or course.author == request.user %}
+                            {% if first_lesson %}
+                                <a href="{% url 'lesson_detail' course.slug first_lesson.id %}" class="btn btn-primary btn-lg w-100 fw-bold">Start learning <i class="bi bi-arrow-right ms-2"></i></a>
+                            {% else %}
+                                <button class="btn btn-secondary btn-lg w-100" disabled>Curriculum coming soon</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'checkout' course.slug %}" class="btn btn-success btn-lg w-100 fw-bold">Enroll for NGN {{ course.price }} <i class="bi bi-credit-card ms-2"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

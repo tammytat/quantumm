@@ -1,0 +1,19 @@
+{% extends "admin/edit_inline/stacked.html" %}
+
+{% block field_sets %}
+<div class="construction-kit-container">
+    <div class="sidebar">
+        <button class="add-block" data-type="theory">Theory</button>
+        <button class="add-block" data-type="code">W3S Snippet</button>
+        </div>
+
+    <div class="builder-stage">
+        {{ block.super }}
+    </div>
+
+    <div class="live-preview">
+        <h4>LIVE PREVIEW</h4>
+        <div id="preview-area">Blocks render here...</div>
+    </div>
+</div>
+{% endblock %}

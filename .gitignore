@@ -1,0 +1,53 @@
+# =============================================================================
+# Quantum TechHub — git ignore rules
+# =============================================================================
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+myenv/
+ENV/
+
+# --- Environment / secrets (NEVER commit) ---
+.env
+*.env
+!env.example.txt
+
+# --- Django runtime artifacts ---
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+*.log
+
+# --- JupyterLite build output (generated; served from static/ or a CDN) ---
+_output/
+/static/jupyter/
+
+# --- Stray / scratch directories seen in the repo ---
+/import pandas as pd/
+/jupyter_workspace/
+
+# --- Per-learner runtime storage ---
+media/jupyter_datasets/
+
+# --- Editor / OS cruft ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# PII & Teacher Documents
+/teacher_documents/
+**/teacher_documents/
+/content
+.jupyterlite.doit.db

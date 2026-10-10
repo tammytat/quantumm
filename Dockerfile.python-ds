@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1
+
+RUN python -m pip install --upgrade pip setuptools wheel
+
+WORKDIR /workspace
+
+COPY requirements-ds.txt /tmp/requirements-ds.txt
+RUN python -m pip install -r /tmp/requirements-ds.txt
+
+ENTRYPOINT ["python"]

@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    .login-card {
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+        transition: transform 0.3s ease;
+    }
+    .form-control {
+        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #f8fafc;
+        transition: all 0.2s ease-in-out;
+    }
+    .form-control:focus {
+        background-color: #ffffff;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    }
+    .btn-login {
+        border-radius: 12px;
+        padding: 14px;
+        transition: all 0.2s ease;
+    }
+    .btn-login:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+    }
+    .input-group-text {
+        background-color: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+        cursor: pointer;
+        color: #64748b;
+    }
+    .form-control.has-addon {
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+    }
+</style>
+
+<div class="container py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card login-card border-0 p-4 p-sm-5">
+                
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex p-3 bg-primary bg-opacity-10 rounded-4 text-primary mb-3">
+                        <i class="bi bi-person-workspace fs-2"></i>
+                    </div>
+                    <h2 class="fw-bold tracking-tight text-dark" style="color: #0f172a;">Instructor Sign Up</h2>
+                    <p class="text-secondary small">Configure your tech sandbox profile details to access the workspace.</p>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger border-0 p-3 small mb-4 rounded-3 d-flex align-items-center" style="background-color: #fef2f2; color: #dc2626;">
+                            <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                            <div>
+                                Correct validation errors below.
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-bold small text-secondary">First Name</label>
+                            {% if form.first_name %}
+                                {{ form.first_name }}
+                            {% else %}
+                                <input type="text" name="first_name" id="id_first_name" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" placeholder="First name" value="{{ form.first_name.value|default:'' }}" required>
+                            {% endif %}
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-6">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-bold small text-secondary">Last Name</label>
+                            {% if form.last_name %}
+                                {{ form.last_name }}
+                            {% else %}
+                                <input type="text" name="last_name" id="id_last_name" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" placeholder="Last name" value="{{ form.last_name.value|default:'' }}" required>
+                            {% endif %}
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-bold small text-secondary">Phone Number</label>
+                        {% if form.phone_number %}
+                            {{ form.phone_number }}
+                        {% else %}
+                            <input type="text" name="phone_number" id="id_phone_number" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" placeholder="Enter phone number" value="{{ form.phone_number.value|default:'' }}" required>
+                        {% endif %}
+                        {% if form.phone_number.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.phone_number.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.years_of_experience.id_for_label }}" class="form-label fw-bold small text-secondary">Years of Experience</label>
+                        {% if form.years_of_experience %}
+                            {{ form.years_of_experience }}
+                        {% else %}
+                            <input type="number" name="years_of_experience" id="id_years_of_experience" class="form-control {% if form.years_of_experience.errors %}is-invalid{% endif %}" placeholder="e.g. 5" value="{{ form.years_of_experience.value|default:'' }}" required>
+                        {% endif %}
+                        {% if form.years_of_experience.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.years_of_experience.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.past_institutions.id_for_label }}" class="form-label fw-bold small text-secondary">Previous Schools</label>
+                        {% if form.past_institutions %}
+                            {{ form.past_institutions }}
+                        {% else %}
+                            <input type="text" name="past_institutions" id="id_past_institutions" class="form-control {% if form.past_institutions.errors %}is-invalid{% endif %}" placeholder="Enter previous institutions" value="{{ form.past_institutions.value|default:'' }}" required>
+                        {% endif %}
+                        {% if form.past_institutions.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.past_institutions.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.certifications_held.id_for_label }}" class="form-label fw-bold small text-secondary">Certifications</label>
+                        {% if form.certifications_held %}
+                            {{ form.certifications_held }}
+                        {% else %}
+                            <input type="text" name="certifications_held" id="id_certifications_held" class="form-control {% if form.certifications_held.errors %}is-invalid{% endif %}" placeholder="Certifications held" value="{{ form.certifications_held.value|default:'' }}" required>
+                        {% endif %}
+                        {% if form.certifications_held.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.certifications_held.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <label for="{{ form.cv_upload.id_for_label }}" class="form-label fw-bold small text-secondary" style="font-size: 12px;">Upload CV</label>
+                            {% if form.cv_upload %}
+                                {{ form.cv_upload }}
+                            {% else %}
+                                <input type="file" name="cv_upload" id="id_cv_upload" class="form-control {% if form.cv_upload.errors %}is-invalid{% endif %}" required>
+                            {% endif %}
+                            {% if form.cv_upload.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.cv_upload.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-6">
+                            <label for="{{ form.certificate_upload.id_for_label }}" class="form-label fw-bold small text-secondary" style="font-size: 12px;">Highest Cert.</label>
+                            {% if form.certificate_upload %}
+                                {{ form.certificate_upload }}
+                            {% else %}
+                                <input type="file" name="certificate_upload" id="id_certificate_upload" class="form-control {% if form.certificate_upload.errors %}is-invalid{% endif %}" required>
+                            {% endif %}
+                            {% if form.certificate_upload.errors %}<div class="text-danger small mt-1 font-monospace" style="font-size: 11px;">{{ form.certificate_upload.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-login btn-lg w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center">
+                        Complete Registration <i class="bi bi-arrow-right-short ms-1 fs-4"></i>
+                    </button>
+                </form>
+
+                <div class="mt-4 pt-2 text-center border-top border-light">
+                    <p class="text-secondary small mb-0">Already registered? 
+                        <a href="{% url 'login' %}?tab=login" class="text-primary fw-bold text-decoration-none ms-1">Sign in here</a>
+                    </p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Safe Attribute Auto-Injected Styles Binder for standard Django Form elements
+        const inputFields = document.querySelectorAll('input[type="text"], input[type="number"], input[type="file"]');
+        
+        inputFields.forEach(field => {
+            field.classList.add('form-control');
+        });
+
+        // Set structural placeholder parameters safely if fields exist
+        const firstNameField = document.querySelector('input[name="first_name"]');
+        if (firstNameField) firstNameField.setAttribute('placeholder', 'First name');
+
+        const lastNameField = document.querySelector('input[name="last_name"]');
+        if (lastNameField) lastNameField.setAttribute('placeholder', 'Last name');
+
+        const phoneField = document.querySelector('input[name="phone_number"]');
+        if (phoneField) phoneField.setAttribute('placeholder', 'Enter phone number');
+
+        const experienceField = document.querySelector('input[name="years_of_experience"]');
+        if (experienceField) experienceField.setAttribute('placeholder', 'e.g. 5');
+
+        const institutionsField = document.querySelector('input[name="past_institutions"]');
+        if (institutionsField) institutionsField.setAttribute('placeholder', 'Enter previous institutions');
+
+        const certsField = document.querySelector('input[name="certifications_held"]');
+        if (certsField) certsField.setAttribute('placeholder', 'Certifications held');
+    });
+</script>
+{% endblock %}

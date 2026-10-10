@@ -1,0 +1,48 @@
+{% extends 'environments/base_env.html' %}
+
+{% block extra_head %}
+<style>
+    .arduino-shell { padding: 16px; }
+    #code-editor { width: 100%; min-height: 330px; background: #020617; color: #d1fae5; padding: 12px; border: 1px solid #334155; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+</style>
+{% endblock %}
+
+{% block env_content %}
+<div class="arduino-shell">
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">Arduino Hardware Bridge</h4>
+            <p class="small text-secondary mb-0">Compile in the platform, then send sketches to a connected board with Web Serial.</p>
+        </div>
+        <span class="badge text-bg-info">USB Serial</span>
+    </div>
+
+    <textarea id="code-editor" data-student-code>void setup() {
+    pinMode(13, OUTPUT);
+}
+
+void loop() {
+    digitalWrite(13, HIGH);
+    delay(1000);
+    digitalWrite(13, LOW);
+    delay(1000);
+}</textarea>
+
+    <div class="d-flex gap-2 mt-3">
+        <button type="button" class="btn btn-primary" onclick="compileSketch()">Compile Sketch</button>
+        <button type="button" class="btn btn-outline-info" data-flash-hardware>Flash to Hardware</button>
+    </div>
+    <div class="env-terminal mt-3" data-env-terminal></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function compileSketch() {
+        const sketch = document.getElementById("code-editor").value;
+        window.environmentBridge.setStudentCode(sketch);
+        const result = await runCode(sketch, "{{ lesson_id }}", "arduino");
+        window.environmentBridge.writeTerminal(result.output || result.message || result.status || "Compile request complete.");
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'environments/base_env.html' %}
+
+{% block extra_head %}
+<style>
+    .robotics-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 100vh; }
+    .robotics-frame { width: 100%; height: 100vh; border: 0; background: #020617; }
+    .robotics-panel { background: #0b1220; border-left: 1px solid #273449; padding: 18px; color: #e2e8f0; }
+    .robotics-panel h4 { margin-bottom: 0.75rem; }
+    .robotics-panel p { margin-bottom: 1.25rem; color: #94a3b8; }
+    .robotics-panel .btn { width: 100%; }
+    .robotics-terminal { margin-top: 16px; }
+    @media (max-width: 900px) { .robotics-grid { grid-template-columns: 1fr; } .robotics-frame { height: 420px; } .robotics-panel { border-left: 0; border-top: 1px solid #273449; } }
+</style>
+{% endblock %}
+
+{% block env_content %}
+<div class="robotics-grid">
+    <iframe
+        title="Robotics simulation workspace"
+        class="robotics-frame"
+        data-circuit-frame
+        sandbox="allow-scripts allow-same-origin"
+        allow="clipboard-write; serial"
+        src="https://wokwi.com/projects/new/arduino-uno?embed=1">
+    </iframe>
+
+    <aside class="robotics-panel">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h4 class="fw-bold mb-0">Robotics Lab</h4>
+                <p class="small">A secure, embedded robotics simulator using a curated Wokwi build and restricted browser messaging.</p>
+            </div>
+            <span class="badge text-bg-success">Robotics</span>
+        </div>
+
+        <div class="d-grid gap-2 mb-3">
+            <button type="button" class="btn btn-success" data-env-run>Run Robotics Code</button>
+            <button type="button" class="btn btn-outline-info" data-flash-hardware>Flash to Device</button>
+        </div>
+
+        <div class="robotics-terminal env-terminal" data-env-terminal></div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const frame = document.querySelector('[data-circuit-frame]');
+        if (frame) {
+            frame.src = '{{ environment_config.iframe_url|default:"https://wokwi.com/projects/new/arduino-uno?embed=1" }}';
+        }
+    });
+</script>
+{% endblock %}

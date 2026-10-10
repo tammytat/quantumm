@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5 py-4">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Mini Admin Studio</h2>
+            <p class="text-muted small mb-0">Track, sort, and manage all current interactive lesson workspace criteria records.</p>
+        </div>
+        <div>
+            <a href="{% url 'mini_admin_lesson_create' %}" class="btn btn-dark px-4 py-2 rounded-3 fw-bold">
+                <i class="bi bi-plus-lg me-2"></i>Create New Lesson
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-4 py-3 small uppercase tracking-wider">Course / Module</th>
+                        <th class="py-3 small uppercase tracking-wider">Lesson Topic</th>
+                        <th class="py-3 small uppercase tracking-wider text-center">Order Index</th>
+                        <th class="pe-4 py-3 small uppercase tracking-wider text-end">Actions Matrix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lesson in lessons %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold d-block text-dark">{{ lesson.module.course.title }}</span>
+                            <small class="text-muted"><i class="bi bi-folder me-1"></i>{{ lesson.module.title }}</small>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-secondary">{{ lesson.title }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border px-2 py-2 rounded-2 font-monospace">{{ lesson.order }}</span>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <div class="btn-group gap-2">
+                                <a href="{% url 'mini_admin_lesson_update' lesson.id %}" class="btn btn-sm btn-outline-dark rounded-2 px-3">
+                                    <i class="bi bi-pencil-square me-1"></i>Edit
+                                </a>
+                                <a href="{% url 'mini_admin_lesson_delete' lesson.id %}" class="btn btn-sm btn-outline-danger rounded-2 px-2">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-inboxes d-block mb-2" style="font-size: 2rem;"></i>
+                            No content lessons have been published under your account author profiles yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

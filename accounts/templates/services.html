@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- --- OPTIONAL INTERACTIVE ICON ENGINE --- -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+<!-- --- GLOBAL PREMIUM INTERFACE STYLES --- -->
+<style>
+    .transition-hover {
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1.5rem 3.5rem rgba(15, 23, 42, 0.08) !important;
+    }
+    .text-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #20c997 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .bg-gradient-consulting {
+        background: linear-gradient(180deg, rgba(13, 110, 253, 0.015) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+    .bg-gradient-training {
+        background: linear-gradient(180deg, rgba(32, 201, 151, 0.015) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+    .service-icon-box {
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+    }
+    .stat-badge-box {
+        border-radius: 16px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+
+<!-- Top margin set to mt-0 to maintain strict vertical navigation flow -->
+<div class="container mt-0 py-5">
+    
+    <!-- --- HEADER ARCHITECTURE --- -->
+    <div class="text-center mb-5 pb-2">
+        <span class="badge bg-primary bg-opacity-10 text-primary mb-3 py-2 px-3 border border-primary border-opacity-25 rounded-pill fw-bold small text-uppercase tracking-wider">Corporate Capabilities Brochure</span>
+        <h1 class="display-5 fw-bold text-dark mb-3 tracking-tight" style="color: #0f172a;">Enterprise Engineering & <span class="text-gradient">Advanced Training</span></h1>
+        <p class="lead text-secondary mx-auto fs-5" style="max-width: 720px; line-height: 1.6;">
+            Quantum TechHub's dual-engine model builds high-integrity technical architecture for industries while training the next generation of digital innovators in Nigeria.
+        </p>
+    </div>
+
+    <!-- --- OPERATIONAL KPI MATRIX METRIC TIER --- -->
+    <div class="row g-3 mb-5 justify-content-center text-center">
+        <div class="col-6 col-md-3">
+            <div class="p-3 stat-badge-box">
+                <h3 class="fw-bold text-primary mb-0">20+</h3>
+                <small class="text-muted fw-semibold uppercase tracking-wider fs-7">Years Classroom Experience</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 stat-badge-box">
+                <h3 class="fw-bold text-success mb-0">NERDC</h3>
+                <small class="text-muted fw-semibold uppercase tracking-wider fs-7">Aligned Curriculums</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 stat-badge-box">
+                <h3 class="fw-bold text-dark mb-0">100%</h3>
+                <small class="text-muted fw-semibold uppercase tracking-wider fs-7">Hands-On Labs</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- TWO-COLUMN DIVISION MATRIX --- -->
+    <div class="row g-5 position-relative">
+        
+        <!-- ================= LEFT COLUMN: TECH CONSULTANCY ================= -->
+        <div class="col-lg-6 position-relative pe-lg-4">
+            
+            <!-- Division Header -->
+            <div class="d-flex align-items-center mb-4 pb-2">
+                <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-primary me-3">
+                    <i class="bi bi-building-gear fs-3"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold text-dark mb-1 h3">01 / Enterprise Consultancy</h2>
+                    <p class="text-secondary small mb-0">Production-grade engineering & core infrastructure solutions.</p>
+                </div>
+            </div>
+
+            <!-- Consultancy Cards Stack -->
+            <div class="d-flex flex-column gap-4">
+                
+                <!-- Service Card: Data Mining -->
+                <div class="card border-0 shadow-sm p-4 bg-gradient-consulting transition-hover" style="border-radius: 20px;">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="service-icon-box bg-white shadow-sm text-primary flex-shrink-0">
+                            <i class="bi bi-database-fill-gear fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold h5 text-dark mb-2">Data Mining & Architecture</h4>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                We design high-integrity scraping arrays and extraction systems to harvest structured datasets from web footprints, securely building robust baseline data infrastructure.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Card: Data Analytics -->
+                <div class="card border-0 shadow-sm p-4 bg-gradient-consulting transition-hover" style="border-radius: 20px;">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="service-icon-box bg-white shadow-sm text-success flex-shrink-0">
+                            <i class="bi bi-filter-square-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold h5 text-dark mb-2">Data Refining & Analytics</h4>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                Transforming noisy telemetry into predictable enterprise analytics. We build automated data-cleaning logic profiles that format, optimize, and compute operational performance arrays.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Card: Web/App Engineering -->
+                <div class="card border-0 shadow-sm p-4 bg-gradient-consulting transition-hover" style="border-radius: 20px;">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="service-icon-box bg-white shadow-sm text-info flex-shrink-0">
+                            <i class="bi bi-code-slash fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold h5 text-dark mb-2">Web & Application Architecture</h4>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                Engineering modular, fast-loading Python and Django web applications utilizing robust layout inheritance, clean template patterns, and secure authentication lifecycles.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Card: Robotic Solutions -->
+                <div class="card border-0 shadow-sm p-4 bg-gradient-consulting transition-hover" style="border-radius: 20px;">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="service-icon-box bg-white shadow-sm text-warning flex-shrink-0">
+                            <i class="bi bi-cpu-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold h5 text-dark mb-2">Robotic Automation Frameworks</h4>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                Custom microcontroller setups, hardware circuit telemetry, and firmware implementations built to optimize automated environments, remote sensor relays, and industrial hardware operations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- End Stack -->
+
+            <!-- Desktop Responsive Explicit Divider Border Handle -->
+            <div class="position-absolute h-100 top-0 end-0 border-end d-none d-lg-block" style="opacity: 0.6;"></div>
+        </div>
+
+
+        <!-- ================= RIGHT COLUMN: TECHNICAL TRAINING ================= -->
+        <div class="col-lg-6 ps-lg-4 mt-5 mt-lg-0">
+            
+            <!-- Division Header -->
+            <div class="d-flex align-items-center mb-4 pb-2">
+                <div class="p-3 bg-success bg-opacity-10 rounded-3 text-success me-3">
+                    <i class="bi bi-mortarboard-fill fs-3"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold text-dark mb-1 h3">02 / Elite Training Programs</h2>
+                    <p class="text-secondary small mb-0">Translating industrial skillsets into interactive laboratory workshops.</p>
+                </div>
+            </div>
+
+            <!-- Training Cards Stack -->
+            <div class="d-flex flex-column gap-4">
+                
+                <!-- Training Block: Data Science -->
+                <div class="card border-0 shadow-sm p-4 bg-gradient-training transition-hover" style="border-radius: 20px;">
+                    <div class="service-icon-box bg-white shadow-sm text-primary mb-3">
+                        <i class="bi bi-terminal-fill fs-4"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2 h5">Full-Stack Web Development & Logic</h4>
+                    <p class="text-secondary small mb-4" style="line-height: 1.6;">
+                        Immersive technical training tracks teaching database styling models, secure request routing pathways, logic control conditions, and responsive front-end execution. Students build real web systems from scratch.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-secondary border py-2 px-3 rounded-pill fw-bold small">Python Ecosystems</span>
+                        <span class="badge bg-light text-secondary border py-2 px-3 rounded-pill fw-bold small">Django Architecture</span>
+                        <span class="badge bg-light text-secondary border py-2 px-3 rounded-pill fw-bold small">Tailwind & Bootstrap UI</span>
+                    </div>
+                </div>
+
+                <!-- Training Block: Embedded Robotics -->
+                <div class="card border-0 shadow-sm p-4 bg-gradient-training transition-hover" style="border-radius: 20px;">
+                    <div class="service-icon-box bg-white shadow-sm text-success mb-3">
+                        <i class="bi bi-robot fs-4"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2 h5">Physical Computing & Robotics Intensive</h4>
+                    <p class="text-secondary small mb-4" style="line-height: 1.6;">
+                        Practical, hands-on workshop courses exploring active embedded loops. Direct training configuring physical microcontroller pin arrays, loop controls, ultrasonic distance calculations, and standalone smart facilities.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-secondary border py-2 px-3 rounded-pill fw-bold small">Arduino Workstations</span>
+                        <span class="badge bg-light text-secondary border py-2 px-3 rounded-pill fw-bold small">C++ Embedded Loops</span>
+                        <span class="badge bg-light text-secondary border py-2 px-3 rounded-pill fw-bold small">Hardware Circuit Integration</span>
+                    </div>
+                </div>
+
+            </div><!-- End Stack -->
+        </div>
+
+    </div><!-- End Row -->
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends 'environments/base_env.html' %}
+{% block extra_head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+{% endblock %}
+{% block env_content %}
+    <div id="monaco-editor" style="height: 400px;"></div>
+    <button class="btn btn-primary" onclick="runCode(editor.getValue(), '{{ lesson.id }}', 'python')">Run</button>
+{% endblock %}

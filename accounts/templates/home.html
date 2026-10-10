@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ course.title }}</h1>
+    <p>{{ course.description }}</p>
+    <div class="list-group">
+        {% for lesson in course.lesson_set.all %}
+            <a href="{% url 'lesson_detail' course.slug lesson.id %}" class="list-group-item list-group-item-action">
+                {{ lesson.title }}
+            </a> <!-- Close the <a> tag here -->
+        {% endfor %} <!-- Use endfor to close the loop -->
+    </div>
+</div>
+{% endblock %}

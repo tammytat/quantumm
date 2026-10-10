@@ -1,0 +1,17 @@
+{% extends 'environments/base_env.html' %}
+{% block env_content %}
+    <h5>Python Sandbox</h5>
+    <div id="editor"># Write your code here...</div>
+    <button class="btn btn-primary mt-2" onclick="submit()">Run Code</button>
+    <div id="output" class="mt-3 p-2 bg-dark"></div>
+
+    <script>
+        function submit() {
+            const code = "print('Hello World')"; // Replace with editor value
+            runCode(code, '{{ lesson.id }}').then(data => {
+                document.getElementById('output').innerText = data.message || data.output;
+            });
+        }
+    </script>
+{% endblock %}
+

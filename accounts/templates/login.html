@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- --- OPTIONAL INTERACTIVE ICON ENGINE --- -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    .login-card {
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+        transition: transform 0.3s ease;
+    }
+    .form-control {
+        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #f8fafc;
+        transition: all 0.2s ease-in-out;
+    }
+    .form-control:focus {
+        background-color: #ffffff;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    }
+    .btn-login {
+        border-radius: 12px;
+        padding: 14px;
+        transition: all 0.2s ease;
+    }
+    .btn-login:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+    }
+    .input-group-text {
+        background-color: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+        cursor: pointer;
+        color: #64748b;
+    }
+    .form-control.has-addon {
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+    }
+</style>
+
+<div class="container py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card login-card border-0 p-4 p-sm-5">
+                
+                <!-- --- APP LOGO & HEADER MATRIX --- -->
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex p-3 bg-primary bg-opacity-10 rounded-4 text-primary mb-3">
+                        <i class="bi bi-shield-lock-fill fs-2"></i>
+                    </div>
+                    <h2 class="fw-bold tracking-tight text-dark" style="color: #0f172a;">Welcome Back!</h2>
+                    <p class="text-secondary small">Access the hub to continue your training pipeline.</p>
+                </div>
+
+                <!-- --- LOGIN ENTRY PROCESSOR --- -->
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Global Non-Field Core System Validation Messages -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger border-0 p-3 small mb-4 rounded-3 d-flex align-items-center" style="background-color: #fef2f2; color: #dc2626;">
+                            <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                            <div>
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Username Interface Array -->
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label fw-bold small text-secondary">Username</label>
+                        {% if form.username %}
+                            <!-- Bound Safe Render Block -->
+                            {{ form.username }}
+                        {% else %}
+                            <!-- Fallback/Direct Explicit Field Render Override -->
+                            <input type="text" name="username" id="id_username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" placeholder="Enter your hub username" value="{{ form.username.value|default:'' }}" required>
+                        {% endif %}
+                        
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block mt-1 smallfw-medium">
+                                {{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Interface Array -->
+                    <div class="mb-4">
+                        <label for="{{ form.password.id_for_label }}" class="form-label fw-bold small text-secondary">Password</label>
+                        <div class="input-group">
+                            {% if form.password %}
+                                {{ form.password }}
+                            {% else %}
+                                <input type="password" name="password" id="id_password" class="form-control has-addon {% if form.password.errors %}is-invalid{% endif %}" placeholder="••••••••" required>
+                            {% endif %}
+                            <span class="input-group-text" id="togglePasswordVisibility">
+                                <i class="bi bi-eye" id="toggleIcon"></i>
+                            </span>
+                        </div>
+                        
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block mt-1 small fw-medium">
+                                {{ form.password.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Authorization Trigger -->
+                    <button type="submit" class="btn btn-primary btn-login btn-lg w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center">
+                        Authenticate & Enter <i class="bi bi-arrow-right-short ms-1 fs-4"></i>
+                    </button>
+                </form>
+
+                <!-- --- INDEX REGISTER INTERFACE REDIRECT --- -->
+                <div class="mt-4 pt-2 text-center border-top border-light">
+                    <p class="text-secondary small mb-0">First time at the workstation? 
+                        <a href="{% url 'signup' %}" class="text-primary fw-bold text-decoration-none ms-1">Create an account</a>
+                    </p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- --- DESKTOP INTERACTION ENGINE SCRIPTS --- -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Safe Attribute Auto-Injected Styles Binder for standard Django Form elements
+        const usernameField = document.querySelector('input[name="username"]');
+        const passwordField = document.querySelector('input[name="password"]');
+
+        if (usernameField) {
+            usernameField.classList.add('form-control');
+            usernameField.setAttribute('placeholder', 'Enter your username');
+        }
+        if (passwordField) {
+            passwordField.classList.add('form-control', 'has-addon');
+            passwordField.setAttribute('placeholder', '••••••••');
+        }
+
+        // Live Password Dynamic Visual Switch Toggle
+        const toggleTrigger = document.getElementById('togglePasswordVisibility');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (toggleTrigger && passwordField) {
+            toggleTrigger.addEventListener('click', function() {
+                const isSecure = passwordField.getAttribute('type') === 'password';
+                passwordField.setAttribute('type', isSecure ? 'text' : 'password');
+                
+                // Toggle graphical UI vector classes
+                toggleIcon.classList.toggle('bi-eye');
+                toggleIcon.classList.toggle('bi-eye-slash');
+            });
+        }
+    });
+</script>
+{% endblock %}
