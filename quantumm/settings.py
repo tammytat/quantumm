@@ -176,6 +176,28 @@ LOGOUT_REDIRECT_URL = 'index'         # This sends them back to the landing page
 # Logout must be performed via POST (see base.html form) to avoid CSRF/logout
 # CSRF issues; LOGOUT_ON_GET was intentionally removed.
 
+# Static files are served by the WSGI server in production via collectstatic.
+STATIC_URL = os.environ.get('DJANGO_STATIC_URL', 'static/')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# User-uploaded media (datasets, lesson images, application certificates).
+MEDIA_URL = os.environ.get('DJANGO_MEDIA_URL', '/media/')
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Django 4.2+ unified storage configuration. Keeps the default file-system
+# backend but makes it explicit and overridable without code changes.
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Paystack Keys — loaded from the environment. Never hardcode or commit these.
 PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
@@ -202,12 +224,31 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 EXECUTION_RATE_LIMIT_MAX = int(os.environ.get('EXECUTION_RATE_LIMIT_MAX', '30'))
 EXECUTION_RATE_LIMIT_WINDOW = int(os.environ.get('EXECUTION_RATE_LIMIT_WINDOW', '60'))
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'quantum-ratelimit',
+# --- Cache / rate-limiting backend ---
+# Redis is REQUIRED in production so throttling is shared across worker
+# processes. LocMemCache is per-process: with N gunicorn workers the effective
+# limit becomes N x max, and counters reset on every deploy. LocMem is fine for
+# local development where there is a single process and no Redis running.
+REDIS_URL = os.environ.get('REDIS_URL', '').strip()
+
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'quantum',
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'quantum-ratelimit',
+        }
+    }
 
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get(
     'DJANGO_CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1,http://localhost'
@@ -220,18 +261,40 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 # -----------------------------------------------------------------------------
 # Production hardening (only when DEBUG is disabled)
 # -----------------------------------------------------------------------------
+# if not DEBUG:
+    # Refuse to boot in production with the insecure development fallback key.
+
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SESSION_COOKIE_HTTPONLY = True
-    # The IDE bridge reads the CSRF cookie via JS, so keep this readable.
-    CSRF_COOKIE_HTTPONLY = False
+    # Refuse to boot in production with the insecure development fallback key.
+    if SECRET_KEY == 'django-insecure-dev-only-fallback':
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must be set to a strong, unique value when DEBUG is off."
+        )
 
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+SESSION_COOKIE_HTTPONLY = True
+# The IDE bridge reads the CSRF cookie via JS, so keep this readable.
+CSRF_COOKIE_HTTPONLY = False
 
-STATIC_URL = "static/"
+# Warn (do not fail) if throttling is running on a per-process cache, which
+# weakens rate limiting when multiple workers are deployed.
+if not DEBUG:
+    if not REDIS_URL and not os.environ.get('DJANGO_ALLOW_LOCMEM_IN_PROD'):
+        import warnings
+        warnings.warn(
+            "REDIS_URL is not set with DEBUG=False. Rate limiting will use a "
+            "per-process cache and may not limit correctly across workers. "
+            "Set REDIS_URL (see requirements.txt) for production. To silence "
+            "this warning, set DJANGO_ALLOW_LOCMEM_IN_PROD=1.",
+            RuntimeWarning,
+        )
+

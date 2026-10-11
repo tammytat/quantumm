@@ -15,6 +15,11 @@ sqlparse>=0.5
 # --- Admin UX ---
 django-admin-sortable2>=2.2
 
+# --- Shared cache backend (rate limiting across worker processes) ---
+# Optional at runtime: falls back to local-memory cache for development when
+# REDIS_URL is not configured. Required in production for correct throttling.
+django-redis>=5.4
+
 # --- HTTP client (Paystack API) ---
 requests>=2.31
 

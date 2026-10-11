@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core import mail
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -421,6 +422,21 @@ class PasswordResetTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-        # Old password no longer works, new one does.
+                # Old password no longer works, new one does.
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password(new_password))
+
+
+# ---------------------------------------------------------------------------
+# Cache / rate-limit backend selection
+# ---------------------------------------------------------------------------
+
+class CacheBackendConfigTests(TestCase):
+    """Throttling must be shareable in production via Redis, without breaking
+    the zero-config local development experience."""
+
+    def test_default_dev_cache_is_locmem(self):
+        # With no REDIS_URL in the test environment, django uses the locmem
+        # backend so tests never depend on a running Redis server.
+        backend = settings.CACHES["default"]["BACKEND"]
+        self.assertIn("locmem", backend.lower())
